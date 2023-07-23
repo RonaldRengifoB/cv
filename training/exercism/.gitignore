@@ -1,0 +1,6 @@
+**/.exercism
+**/__pycache__
+**/.pytest_cache
+*_test.py
+HELP.md
+HINTS.md
