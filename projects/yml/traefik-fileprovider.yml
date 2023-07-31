@@ -1,0 +1,390 @@
+http:
+  routers:
+    proxmox:
+      entryPoints:
+        - http
+      rule: "Host(`pve-valhalla.c0d3n4m3.net`)"
+      middlewares:
+        - https-redirect
+      service: proxmox
+    proxmox-https:
+      entryPoints:
+        - https
+      rule: "Host(`pve-valhalla.c0d3n4m3.net`)"
+      middlewares:
+        - default-headers
+      tls:
+        certResolver: letsencrypt
+      service: proxmox
+    
+    freenas:
+      entryPoints:
+        - http
+      rule: "Host(`sonne.c0d3n4m3.net`)"
+      middlewares:
+        - https-redirect
+      service: freenas
+    freenas-https:
+      entryPoints:
+        - https
+      rule: "Host(`sonne.c0d3n4m3.net`)"
+      middlewares:
+        - default-headers
+      tls:
+        certResolver: letsencrypt
+      service: freenas
+    
+    untangle:
+      entryPoints:
+        - http
+      rule: "Host(`heimdall.c0d3n4m3.net`)"
+      middlewares:
+        - https-redirect
+      service: untangle
+    untangle-https:
+      entryPoints:
+        - https
+      rule: "Host(`heimdall.c0d3n4m3.net`)"
+      middlewares:
+        - default-headers
+      tls:
+        certResolver: letsencrypt
+      service: untangle
+
+    homeassistant:
+      entryPoints:
+        - http
+      rule: "Host(`home.c0d3n4m3.net`)"
+      middlewares:
+        - https-redirect
+      service: homeassistant
+    homeassistant-https:
+      entryPoints:
+        - https
+      rule: "Host(`home.c0d3n4m3.net`)"
+      middlewares:
+        - default-headers
+      tls:
+        certResolver: letsencrypt
+      service: homeassistant
+
+    unifi:
+      entryPoints:
+        - http
+      rule: "Host(`unifi.c0d3n4m3.net`)"
+      middlewares:
+        - https-redirect
+      service: unifi
+    unifi-https:
+      entryPoints:
+        - https
+      rule: "Host(`unifi.c0d3n4m3.net`)"
+      middlewares:
+        - default-headers
+      tls:
+        certResolver: letsencrypt
+      service: unifi
+
+    qbittorrent:
+      entryPoints:
+        - http
+      rule: "Host(`torrent.c0d3n4m3.net`)"
+      middlewares:
+        - https-redirect
+      service: qbittorrent
+    qbittorrent-https:
+      entryPoints:
+        - https
+      rule: "Host(`torrent.c0d3n4m3.net`)"
+      middlewares:
+        - default-headers
+      tls:
+        certResolver: letsencrypt
+      service: qbittorrent
+
+    sabnzbd:
+      entryPoints:
+        - http
+      rule: "Host(`usenet.c0d3n4m3.net`)"
+      middlewares:
+        - https-redirect
+      service: sabnzbd
+    sabnzbd-https:
+      entryPoints:
+        - https
+      rule: "Host(`usenet.c0d3n4m3.net`)"
+      middlewares:
+        - default-headers
+      tls:
+        certResolver: letsencrypt
+      service: sabnzbd
+
+    prowlarr:
+      entryPoints:
+        - http
+      rule: "Host(`prowlarr.c0d3n4m3.net`)"
+      middlewares:
+        - https-redirect
+      service: prowlarr
+    prowlarr-https:
+      entryPoints:
+        - https
+      rule: "Host(`prowlarr.c0d3n4m3.net`)"
+      middlewares:
+        - default-headers
+      tls:
+        certResolver: letsencrypt
+      service: prowlarr
+
+    sonarr:
+      entryPoints:
+        - http
+      rule: "Host(`sonarr.c0d3n4m3.net`)"
+      middlewares:
+        - https-redirect
+      service: sonarr
+    sonarr-https:
+      entryPoints:
+        - https
+      rule: "Host(`sonarr.c0d3n4m3.net`)"
+      middlewares:
+        - default-headers
+      tls:
+        certResolver: letsencrypt
+      service: sonarr
+
+    radarr:
+      entryPoints:
+        - http
+      rule: "Host(`radarr.c0d3n4m3.net`)"
+      middlewares:
+        - https-redirect
+      service: radarr
+    radarr-https:
+      entryPoints:
+        - https
+      rule: "Host(`radarr.c0d3n4m3.net`)"
+      middlewares:
+        - default-headers
+      tls:
+        certResolver: letsencrypt
+      service: radarr
+
+    bazarr:
+      entryPoints:
+        - http
+      rule: "Host(`bazarr.c0d3n4m3.net`)"
+      middlewares:
+        - https-redirect
+      service: bazarr
+    bazarr-https:
+      entryPoints:
+        - https
+      rule: "Host(`bazarr.c0d3n4m3.net`)"
+      middlewares:
+        - default-headers
+      tls:
+        certResolver: letsencrypt
+      service: bazarr
+
+    plex:
+      entryPoints:
+        - http
+      rule: "Host(`plex.c0d3n4m3.net`)"
+      middlewares:
+        - https-redirect
+      service: plex
+    plex-https:
+      entryPoints:
+        - https
+      rule: "Host(`plex.c0d3n4m3.net`)"
+      middlewares:
+        - default-headers
+      tls:
+        certResolver: letsencrypt
+      service: plex
+
+    influxdb:
+      entryPoints:
+        - http
+      rule: "Host(`influxdb.c0d3n4m3.net`)"
+      middlewares:
+        - https-redirect
+      service: influxdb
+    influxdb-https:
+      entryPoints:
+        - https
+      rule: "Host(`influxdb.c0d3n4m3.net`)"
+      middlewares:
+        - default-headers
+      tls:
+        certResolver: letsencrypt
+      service: influxdb
+
+    prometheus:
+      entryPoints:
+        - http
+      rule: "Host(`prometheus.c0d3n4m3.net`)"
+      middlewares:
+        - https-redirect
+      service: prometheus
+    prometheus-https:
+      entryPoints:
+        - https
+      rule: "Host(`prometheus.c0d3n4m3.net`)"
+      middlewares:
+        - default-headers
+      tls:
+        certResolver: letsencrypt
+      service: prometheus
+
+    grafana:
+      entryPoints:
+        - http
+      rule: "Host(`monitor.c0d3n4m3.net`)"
+      middlewares:
+        - https-redirect
+      service: grafana
+    grafana-https:
+      entryPoints:
+        - https
+      rule: "Host(`monitor.c0d3n4m3.net`)"
+      middlewares:
+        - default-headers
+      tls:
+        certResolver: letsencrypt
+      service: grafana
+
+    uptimekuma:
+      entryPoints:
+        - http
+      rule: "Host(`uptime.c0d3n4m3.net`)"
+      middlewares:
+        - https-redirect
+      service: uptimekuma
+    uptimekuna-https:
+      entryPoints:
+        - https
+      rule: "Host(`uptime.c0d3n4m3.net`)"
+      middlewares:
+        - default-headers
+      tls:
+        certResolver: letsencrypt
+      service: uptimekuma
+
+  middlewares:
+    https-redirect:
+      redirectScheme:
+        scheme: https
+
+    default-headers:
+      headers:
+        frameDeny: true
+        sslRedirect: true
+        browserXssFilter: true
+        contentTypeNosniff: true
+        forceSTSHeader: true
+        stsIncludeSubdomains: true
+        stsPreload: true
+
+    secured:
+      chain:
+        middlewares:
+        - default-headers
+
+  services:
+    proxmox:
+      loadBalancer:
+        servers:
+          - url: "https://10.98.184.249:8006"
+        passHostHeader: true
+
+    freenas:
+      loadBalancer:
+        servers:
+          - url: "https://10.98.184.199:443"
+        passHostHeader: true
+
+    untangle:
+      loadBalancer:
+        servers:
+          - url: "https://10.98.184.253:443"
+        passHostHeader: true
+
+    homeassistant:
+      loadBalancer:
+        servers:
+          - url: "http://10.98.184.28:8123"
+        passHostHeader: true
+
+    unifi:
+      loadBalancer:
+        servers:
+          - url: "https://10.98.184.27:8443"
+        passHostHeader: true
+
+    qbittorrent:
+      loadBalancer:
+        servers:
+          - url: "http://10.98.184.25:7070"
+        passHostHeader: true
+
+    sabnzbd:
+      loadBalancer:
+        servers:
+          - url: "http://10.98.184.25:8080"
+        passHostHeader: true
+
+    prowlarr:
+      loadBalancer:
+        servers:
+          - url: "http://10.98.184.25:9696"
+        passHostHeader: true
+
+    sonarr:
+      loadBalancer:
+        servers:
+          - url: "http://10.98.184.25:8989"
+        passHostHeader: true
+
+    radarr:
+      loadBalancer:
+        servers:
+          - url: "http://10.98.184.25:7878"
+        passHostHeader: true
+
+    bazarr:
+      loadBalancer:
+        servers:
+          - url: "http://10.98.184.25:6767"
+        passHostHeader: true
+
+    plex:
+      loadBalancer:
+        servers:
+          - url: "http://10.98.184.25:32400"
+        passHostHeader: true                                
+
+    influxdb:
+      loadBalancer:
+        servers:
+          - url: "http://10.98.184.26:8086"
+        passHostHeader: true
+
+    prometheus:
+      loadBalancer:
+        servers:
+          - url: "http://10.98.184.26:9090"
+        passHostHeader: true
+
+    grafana:
+      loadBalancer:
+        servers:
+          - url: "http://10.98.184.26:3000"
+        passHostHeader: true
+
+    uptimekuma:
+      loadBalancer:
+        servers:
+          - url: "http://10.98.184.26:3001"
+        passHostHeader: true

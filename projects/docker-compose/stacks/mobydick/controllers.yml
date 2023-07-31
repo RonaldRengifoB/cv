@@ -1,0 +1,168 @@
+version: "3.2"
+services:
+  
+  cloudbeaver:
+    image: dbeaver/cloudbeaver:latest
+    container_name: cloudbeaver
+    labels:
+    - traefik.enable=true 
+    - traefik.http.middlewares.https-redirect.redirectscheme.scheme=https
+    - traefik.http.middlewares.https-redirect.redirectscheme.permanent=true
+    - traefik.http.routers.cloudbeaver.rule=Host(`sql.c0d3n4m3.net`)
+    - traefik.http.routers.cloudbeaver.entrypoints=http
+    - traefik.http.routers.cloudbeaver.middlewares=https-redirect
+    - traefik.http.routers.cloudbeaver-https.rule=Host(`sql.c0d3n4m3.net`)
+    - traefik.http.routers.cloudbeaver-https.entrypoints=https
+    - traefik.http.routers.cloudbeaver-https.middlewares=authelia@docker
+    - traefik.http.services.cloudbeaver.loadbalancer.server.port=8978
+    - traefik.http.routers.cloudbeaver-https.tls=true
+    - traefik.http.routers.cloudbeaver-https.service=cloudbeaver
+    - traefik.http.routers.cloudbeaver-https.tls.certresolver=letsencrypt
+    volumes:
+      - type: volume
+        source: cloudbeaver
+        target: /opt/cloudbeaver/workspace 
+        volume:
+          nocopy: true  
+    restart: unless-stopped
+    networks:
+      - apps
+      - controllers
+  
+  authelia:
+    image: authelia/authelia:latest
+    container_name: authelia
+    environment:
+      - TZ=$TZ
+      - AUTHELIA_JWT_SECRET=$AUTHELIA_JWT_SECRET
+      - AUTHELIA_SESSION_SECRET=$AUTHELIA_SESSION_SECRET
+      - AUTHELIA_STORAGE_ENCRYPTION_KEY=$AUTHELIA_STORAGE_ENCRYPTION_KEY
+      - AUTHELIA_STORAGE_MYSQL_PASSWORD=$AUTHELIA_STORAGE_MYSQL_PASSWORD
+      - AUTHELIA_NOTIFIER_SMTP_PASSWORD=$AUTHELIA_NOTIFIER_SMTP_PASSWORD
+    volumes:
+      - type: volume
+        source: authelia
+        target: /config 
+        volume:
+          nocopy: true
+      - type: volume
+        source: authelia-secrets
+        target: /config/secrets 
+        volume:
+          nocopy: true    
+    restart: unless-stopped
+    networks:
+      - controllers
+      - apps
+    labels:
+      - traefik.enable=true
+      - traefik.http.middlewares.https-redirect.redirectscheme.scheme=https
+      - traefik.http.middlewares.https-redirect.redirectscheme.permanent=true
+      - traefik.http.routers.authelia.rule=Host(`login.c0d3n4m3.net`)
+      - traefik.http.routers.authelia.entrypoints=http
+      - traefik.http.routers.authelia.middlewares=https-redirect
+      - traefik.http.routers.authelia-https.rule=Host(`login.c0d3n4m3.net`)      
+      - traefik.http.routers.authelia-https.entrypoints=https
+      - traefik.http.routers.authelia-https.tls=true
+      - traefik.http.routers.authelia-https.service=authelia
+      - traefik.http.routers.authelia-https.tls.certresolver=letsencrypt
+      - traefik.http.services.authelia.loadbalancer.server.port=9091  
+      - traefik.http.middlewares.authelia.forwardauth.address=http://authelia:9091/api/verify?rd=https://login.c0d3n4m3.net/
+      - traefik.http.middlewares.authelia.forwardauth.trustForwardHeader=true
+      - traefik.http.middlewares.authelia.forwardauth.authResponseHeaders=Remote-User, Remote-Groups, Remote-Name, Remote-Email
+#      - traefik.http.middlewares.authelia-basic.forwardauth.address=http://authelia:9091/api/verify?auth=basic
+#      - traefik.http.middlewares.authelia-basic.forwardauth.trustForwardHeader=true
+#      - traefik.http.middlewares.authelia-basic.forwardauth.authResponseHeaders=Remote-User, Remote-Groups, Remote-Name, Remote-Email
+
+  traefik:
+    image: "traefik:latest"
+    container_name: "traefik"
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      - CLOUDFLARE_EMAIL=$CLOUDFLARE_EMAIL
+      - CLOUDFLARE_DNS_API_TOKEN=$CLOUDFLARE_DNS_API_TOKEN
+    command:
+      # Enable the Traefik log, for configurations and errors
+      - --log
+      # Enable the Dashboard and API
+      - --api
+      - --providers.docker=true
+      - --providers.docker.exposedbydefault=false
+      - --providers.file.directory=/data/traefik-fileprovider.yml
+      # Metrics
+      - --metrics.prometheus=true
+      - --metrics.prometheus.buckets=0.1,0.3,1.2,5.0
+      # Create an entrypoint "http" listening on address 80
+      - --entrypoints.http.address=:80
+      # Create an entrypoint "https" listening on address 443
+      - --entrypoints.https.address=:443
+      # Setup letsEncrypt por DNS Validation
+      - --certificatesresolvers.letsencrypt.acme.dnschallenge=true
+      - --certificatesresolvers.letsencrypt.acme.dnschallenge.provider=cloudflare
+      - --certificatesresolvers.letsencrypt.acme.storage=acme.json
+      - --certificatesresolvers.letsencrypt.acme.email=$ACME_EMAIL
+      # Avoid validation of self-signed certificates in containers
+      - --serverstransport.insecureskipverify=true
+    labels:
+      # Enable Traefik for this service, to make it available in the public network
+      - traefik.enable=true 
+      # https-redirect middleware to redirect HTTP to HTTPS
+      # It can be re-used by other stacks in other Docker Compose files
+      - traefik.http.middlewares.https-redirect.redirectscheme.scheme=https
+      - traefik.http.middlewares.https-redirect.redirectscheme.permanent=true
+      - traefik.http.middlewares.sslheader.headers.customrequestheaders.X-Forwarded-Proto=https
+      # Dashboard HTTP here
+      - traefik.http.routers.traefik.rule=Host(`traefik.c0d3n4m3.net`)
+      - traefik.http.routers.traefik.entrypoints=http
+      - traefik.http.routers.traefik.middlewares=https-redirect
+      # Dashboard HTTPS here
+      - traefik.http.routers.traefik-https.rule=Host(`traefik.c0d3n4m3.net`)
+      - traefik.http.routers.traefik-https.entrypoints=https
+      - traefik.http.routers.traefik-https.middlewares=authelia@docker
+      - traefik.http.routers.traefik-https.tls=true
+      # Use the special Traefik service api@internal with the web UI/Dashboard
+      - traefik.http.routers.traefik-https.service=api@internal
+      # Use the Let's Encrypt resolver created below
+      - traefik.http.routers.traefik-https.tls.certresolver=letsencrypt
+      # Enable password auth
+#      - traefik.http.routers.traefik.middlewares=auth 
+      # Substitute with your htpasswd string and escape dollar signs!
+#      - traefik.http.middlewares.auth.basicauth.users=axl:$$apr1$$n3ok58fw$$l91RqHavFji06G5CMtHUd1
+    volumes:
+      - /mnt/docker/ymls/:/data/traefik-fileprovider.yml #yml with routes for external servers
+      - /mnt/docker/certs/:/data/letsencrypt/acme.json
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    restart: always
+    networks:
+    - routing
+    - controllers
+    - apps
+
+networks:
+  routing:
+    external: true
+  controllers:
+    external: true
+  apps:
+    external: true 
+
+volumes:
+  cloudbeaver:
+    driver_opts:
+      type: "nfs4"
+      o: "addr=10.98.184.199,nolock,soft,rw"
+      device: ":/mnt/pool0/docker/volumes/cloudbeaver/"
+
+  authelia:
+    driver_opts:
+      type: "nfs4"
+      o: "addr=10.98.184.199,nolock,soft,rw"
+      device: ":/mnt/pool0/docker/volumes/authelia/"
+
+  authelia-secrets:
+    driver_opts:
+      type: "nfs4"
+      o: "addr=10.98.184.199,nolock,soft,ro"
+      device: ":/mnt/pool0/docker/volumes/authelia/secrets/"

@@ -1,0 +1,256 @@
+version: "3.7"
+
+services:
+  grafana:
+    image: grafana/grafana-oss:latest
+    container_name: grafana
+    restart: unless-stopped
+    volumes:
+#    - /home/axl/docker/volumes/grafana:/var/lib/grafana
+      - type: volume
+        source: grafana
+        target: /var/lib/grafana
+        volume:
+          nocopy: true  
+    networks:
+    - monitoring  
+    ports:
+    - 3000:3000
+#    labels:
+#    - traefik.enable=true 
+#    - traefik.http.middlewares.https-redirect.redirectscheme.scheme=https
+#    - traefik.http.middlewares.https-redirect.redirectscheme.permanent=true
+#    - traefik.http.routers.grafana.rule=Host(`grafana.c0d3n4m3.net`)
+#    - traefik.http.routers.grafana.entrypoints=http
+#    - traefik.http.routers.grafana.middlewares=https-redirect
+#    - traefik.http.routers.grafana-https.rule=Host(`grafana.c0d3n4m3.net`)
+#    - traefik.http.routers.grafana-https.entrypoints=https
+#    - traefik.http.services.grafana.loadbalancer.server.port=3000
+#    - traefik.http.routers.grafana-https.tls=true
+#    - traefik.http.routers.grafana-https.service=grafana
+#    - traefik.http.routers.grafana-https.tls.certresolver=letsencrypt
+    user: '1000' #uid for axl
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    restart: unless-stopped
+    volumes:
+      - /mnt/docker/ymls:/etc/prometheus
+#    - /home/axl/docker/volumes/prometheus:/prometheus
+      - type: volume
+        source: prometheus
+        target: /prometheus
+        volume:
+          nocopy: true  
+    ports:
+    - 9090:9090
+#    labels:
+#    - traefik.enable=true 
+#    - traefik.http.middlewares.https-redirect.redirectscheme.scheme=https
+#    - traefik.http.middlewares.https-redirect.redirectscheme.permanent=true
+#    - traefik.http.routers.prometheus.rule=Host(`prometheus.c0d3n4m3.net`)
+#    - traefik.http.routers.prometheus.entrypoints=http
+#    - traefik.http.routers.prometheus.middlewares=https-redirect
+#    - traefik.http.routers.prometheus-https.rule=Host(`prometheus.c0d3n4m3.net`)
+#    - traefik.http.routers.prometheus-https.entrypoints=https
+#    - traefik.http.services.prometheus.loadbalancer.server.port=9090
+#    - traefik.http.routers.prometheus-https.tls=true
+#    - traefik.http.routers.prometheus-https.service=prometheus
+#    - traefik.http.routers.prometheus-https.tls.certresolver=letsencrypt
+    command:
+    - '--config.file=/etc/prometheus/prometheus-config.yml'
+    - '--storage.tsdb.path=/prometheus'
+    - '--storage.tsdb.retention.time=30d' #data retention to 30 days
+    - '--web.enable-lifecycle'
+    networks:
+    - monitoring
+    user: '1000' #uid for axl  
+
+  node_exporter:
+    image: quay.io/prometheus/node-exporter:latest
+    container_name: node_exporter
+    restart: unless-stopped
+    expose:
+      - 9100
+    command:
+    - '--path.rootfs=/host'
+    pid: host
+    volumes:
+    - '/:/host:ro,rslave'
+    networks:
+    - monitoring  
+
+  snmp_exporter:
+    image: prom/snmp-exporter
+    container_name: snmp_exporter
+    restart: unless-stopped
+    volumes:
+      - /mnt/docker/ymls/:/etc/snmp_exporter/
+    expose:
+      - 9116
+    command:
+    - '--config.file=/etc/snmp_exporter/snmp_exporter-config.yml'
+    networks:
+    - monitoring
+
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:latest
+    container_name: cadvisor
+    restart: unless-stopped
+    expose:
+    - 8080
+    volumes:
+    - /:/rootfs:ro
+    - /var/run:/var/run:rw
+    - /sys:/sys:ro
+    - /var/lib/docker/:/var/lib/docker:ro
+    networks:
+    - monitoring
+
+  influxdb:
+    container_name: influxdb
+    image: influxdb:2.1-alpine
+    ports:
+    - 8086:8086
+#    labels:
+#    - traefik.enable=true 
+#    - traefik.http.middlewares.https-redirect.redirectscheme.scheme=https
+#    - traefik.http.middlewares.https-redirect.redirectscheme.permanent=true
+#    - traefik.http.routers.influxdb.rule=Host(`influxdb.c0d3n4m3.net`)
+#    - traefik.http.routers.influxdb.entrypoints=http
+#    - traefik.http.routers.influxdb.middlewares=https-redirect
+#    - traefik.http.routers.influxdb-https.rule=Host(`influxdb.c0d3n4m3.net`)
+#    - traefik.http.routers.influxdb-https.entrypoints=https
+#    - traefik.http.services.influxdb.loadbalancer.server.port=8086
+#    - traefik.http.routers.influxdb-https.tls=true
+#    - traefik.http.routers.influxdb-https.service=influxdb
+#    - traefik.http.routers.influxdb-https.tls.certresolver=letsencrypt
+    user: '1000' #uid for axl 
+    volumes:
+#      - /home/axl/docker/volumes/influxdb/data/:/var/lib/influxdb2
+#      - /home/axl/docker/volumes/influxdb/config/:/etc/influxdb2
+      - type: volume
+        source: influxdb-data
+        target: /var/lib/influxdb2
+        volume:
+          nocopy: true
+      - type: volume
+        source: influxdb-config
+        target: /etc/influxdb2
+        volume:
+          nocopy: true    
+    networks:
+    - monitoring
+    restart: unless-stopped
+  
+  loki:
+    image: grafana/loki:latest
+    container_name: loki
+    ports:
+    - 3100:3100
+    volumes:
+    - /mnt/docker/ymls:/etc/loki
+    command:
+    - '--config.file=/etc/loki/loki-config.yml'    
+    networks:
+    - monitoring  
+    restart: unless-stopped
+
+  promtail:
+    image: grafana/promtail:latest
+    container_name: promtail
+    volumes:
+    - /var/log:/var/log
+    - /mnt/docker/ymls:/etc/promtail
+    command:
+    - '--config.file=/etc/promtail/promtail-config.yml'    
+    networks:
+    - monitoring  
+    restart: unless-stopped
+
+  uptimekuma:
+    image: louislam/uptime-kuma:latest
+    container_name: uptime-kuma
+    environment:
+    - PUID=$PUID
+    - PGID=$PGID
+    ports:
+    - "3001:3001"
+#    labels:
+#    - traefik.enable=true 
+#    - traefik.http.middlewares.https-redirect.redirectscheme.scheme=https
+#    - traefik.http.middlewares.https-redirect.redirectscheme.permanent=true
+#    - traefik.http.routers.uptimekuma.rule=Host(`uptime.c0d3n4m3.net`)
+#    - traefik.http.routers.uptimekuma.entrypoints=http
+#    - traefik.http.routers.uptimekuma.middlewares=https-redirect
+#    - traefik.http.routers.uptimekuma-https.rule=Host(`uptime.c0d3n4m3.net`)
+#    - traefik.http.routers.uptimekuma-https.entrypoints=https
+#    - traefik.http.services.uptimekuma.loadbalancer.server.port=3001
+#    - traefik.http.routers.uptimekuma-https.tls=true
+#    - traefik.http.routers.uptimekuma-https.service=uptimekuma
+#    - traefik.http.routers.uptimekuma-https.tls.certresolver=letsencrypt
+    volumes:
+#    - /home/axl/docker/volumes/uptime-kuma:/app/data
+      - type: volume
+        source: uptime-kuma
+        target: /app/data
+        volume:
+          nocopy: true  
+    networks:
+    - monitoring  
+    restart: unless-stopped
+
+  watchtower:
+    image: containrrr/watchtower
+    container_name: watchtower
+    environment:
+    - WATCHTOWER_NOTIFICATIONS=$WATCHTOWER_NOTIFICATIONS
+    - WATCHTOWER_NOTIFICATION_EMAIL_FROM=$WATCHTOWER_NOTIFICATION_EMAIL_FROM
+    - WATCHTOWER_NOTIFICATION_EMAIL_TO=$WATCHTOWER_NOTIFICATION_EMAIL_TO
+    - WATCHTOWER_NOTIFICATION_EMAIL_SERVER=$WATCHTOWER_NOTIFICATION_EMAIL_SERVER
+    - WATCHTOWER_NOTIFICATION_EMAIL_SERVER_PORT=$WATCHTOWER_NOTIFICATION_EMAIL_SERVER_PORT
+    - WATCHTOWER_NOTIFICATION_EMAIL_SERVER_USER=$WATCHTOWER_NOTIFICATION_EMAIL_SERVER_USER
+    - WATCHTOWER_NOTIFICATION_EMAIL_SERVER_PASSWORD=$WATCHTOWER_NOTIFICATION_EMAIL_SERVER_PASSWORD
+    - WATCHTOWER_NOTIFICATION_EMAIL_DELAY=$WATCHTOWER_NOTIFICATION_EMAIL_DELAY
+    - WATCHTOWER_CLEANUP=true
+    - WATCHTOWER_SCHEDULE="0 2 * * *"
+    volumes:
+    - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - controllers  
+    restart: unless-stopped
+
+networks:
+  controllers:
+    external: true
+
+  monitoring:
+    external: true
+
+volumes:
+  grafana:
+    driver_opts:
+      type: "nfs4"
+      o: "addr=10.98.184.199,nolock,soft,rw"
+      device: ":/mnt/pool0/docker/volumes/grafana"
+  prometheus:
+    driver_opts:
+      type: "nfs4"
+      o: "addr=10.98.184.199,nolock,soft,rw"
+      device: ":/mnt/pool0/docker/volumes/prometheus"   
+  influxdb-data:
+    driver_opts:
+      type: "nfs4"
+      o: "addr=10.98.184.199,nolock,soft,rw"
+      device: ":/mnt/pool0/docker/volumes/influxdb/data"
+  influxdb-config:
+    driver_opts:
+      type: "nfs4"
+      o: "addr=10.98.184.199,nolock,soft,rw"
+      device: ":/mnt/pool0/docker/volumes/influxdb/config"
+  uptime-kuma:
+    driver_opts:
+      type: "nfs4"
+      o: "addr=10.98.184.199,nolock,soft,rw"
+      device: ":/mnt/pool0/docker/volumes/uptime-kuma"

@@ -1,0 +1,44 @@
+version: "3.2"
+services:
+
+  portainer:
+    image: portainer/portainer:latest
+    container_name: portainer
+    labels:
+    - traefik.enable=true 
+    - traefik.http.middlewares.https-redirect.redirectscheme.scheme=https
+    - traefik.http.middlewares.https-redirect.redirectscheme.permanent=true
+    - traefik.http.routers.portainer.rule=Host(`portainer.c0d3n4m3.net`)
+    - traefik.http.routers.portainer.entrypoints=http
+    - traefik.http.routers.portainer.middlewares=https-redirect
+    - traefik.http.routers.portainer-https.rule=Host(`portainer.c0d3n4m3.net`)
+    - traefik.http.routers.portainer-https.entrypoints=https
+    - traefik.http.routers.portainer-https.middlewares=authelia@docker
+    - traefik.http.services.portainer.loadbalancer.server.port=9443
+    - traefik.http.services.portainer.loadbalancer.server.scheme=https
+    - traefik.http.routers.portainer-https.tls=true
+    - traefik.http.routers.portainer-https.service=portainer
+    - traefik.http.routers.portainer-https.tls.certresolver=letsencrypt
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+#      - /home/axl/docker/volumes/portainer/:/data
+      - type: volume
+        source: portainer
+        target: /data
+        volume:
+          nocopy: true  
+    restart: unless-stopped
+    networks:
+      - controllers
+  
+networks:
+  controllers:
+    external: true
+
+volumes:
+  portainer:
+    driver_opts:
+      type: "nfs4"
+      o: "addr=10.98.184.199,nolock,soft,rw"
+      device: ":/mnt/pool0/docker/volumes/portainer/"    

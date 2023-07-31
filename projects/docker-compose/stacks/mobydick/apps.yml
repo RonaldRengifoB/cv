@@ -1,0 +1,280 @@
+version: "3.2"
+services:
+  heimdall:
+    image: lscr.io/linuxserver/heimdall:latest
+    container_name: heimdall
+    environment:
+      - PUID=$PUID
+      - PGID=$PGID
+    labels:
+    - traefik.enable=true 
+    - traefik.http.middlewares.https-redirect.redirectscheme.scheme=https
+    - traefik.http.middlewares.https-redirect.redirectscheme.permanent=true
+    - traefik.http.routers.heimdall.rule=Host(`entertainment.c0d3n4m3.net`)
+    - traefik.http.routers.heimdall.entrypoints=http
+    - traefik.http.routers.heimdall.middlewares=https-redirect
+    - traefik.http.routers.heimdall-https.rule=Host(`entertainment.c0d3n4m3.net`)
+    - traefik.http.routers.heimdall-https.entrypoints=https
+    - traefik.http.routers.heimdall-https.middlewares=authelia@docker
+    - traefik.http.services.heimdall.loadbalancer.server.port=443
+    - traefik.http.services.heimdall.loadbalancer.server.scheme=https
+    - traefik.http.routers.heimdall-https.tls=true
+    - traefik.http.routers.heimdall-https.service=heimdall
+    - traefik.http.routers.heimdall-https.tls.certresolver=letsencrypt
+    volumes:
+      - type: volume
+        source: heimdall
+        target: /config
+        volume:
+          nocopy: true
+    restart: unless-stopped
+    networks:
+      - apps 
+    
+  dashy:
+    image: lissy93/dashy:latest
+    container_name: dashy
+    environment:
+      - PUID=$PUID
+      - PGID=$PGID
+    labels:
+    - traefik.enable=true 
+    - traefik.http.middlewares.https-redirect.redirectscheme.scheme=https
+    - traefik.http.middlewares.https-redirect.redirectscheme.permanent=true
+    - traefik.http.routers.dashy.rule=Host(`dash.c0d3n4m3.net`)
+    - traefik.http.routers.dashy.entrypoints=http
+    - traefik.http.routers.dashy.middlewares=https-redirect
+    - traefik.http.routers.dashy-https.rule=Host(`dash.c0d3n4m3.net`)
+    - traefik.http.routers.dashy-https.entrypoints=https
+    - traefik.http.routers.dashy-https.middlewares=authelia@docker
+    - traefik.http.services.dashy.loadbalancer.server.port=80
+    - traefik.http.routers.dashy-https.tls=true
+    - traefik.http.routers.dashy-https.service=dashy
+    - traefik.http.routers.dashy-https.tls.certresolver=letsencrypt
+    volumes:
+      - /mnt/docker/ymls/dashy-config.yml:/app/public/conf.yml
+    restart: unless-stopped
+    networks:
+      - apps 
+
+  guacamole:
+    image: guacamole/guacamole
+    container_name: guacamole
+    environment:
+      - MYSQL_DATABASE=$MYSQL_DATABASE
+      - MYSQL_USER=$MYSQL_USER
+      - MYSQL_PASSWORD=$MYSQL_PASSWORD
+      - MYSQL_HOSTNAME=$MYSQL_HOSTNAME
+      - GUACD_HOSTNAME=$GUACD_HOSTNAME
+    labels:
+      - traefik.enable=true 
+      - traefik.http.middlewares.guacamole-prefix.addprefix.prefix=/guacamole
+      - traefik.http.middlewares.https-redirect.redirectscheme.scheme=https
+      - traefik.http.middlewares.https-redirect.redirectscheme.permanent=true
+      - traefik.http.routers.guacamole.rule=Host(`remote.c0d3n4m3.net`)
+      - traefik.http.routers.guacamole.entrypoints=http
+      - traefik.http.routers.guacamole.middlewares=https-redirect
+      - traefik.http.routers.guacamole-https.rule=Host(`remote.c0d3n4m3.net`)
+      - traefik.http.routers.guacamole-https.entrypoints=https
+      - traefik.http.routers.guacamole-https.middlewares=guacamole-prefix
+      - traefik.http.routers.guacamole-https.tls=true
+      - traefik.http.routers.guacamole-https.service=guacamole
+      - traefik.http.routers.guacamole-https.tls.certresolver=letsencrypt
+      - traefik.http.services.guacamole.loadbalancer.server.port=8080
+    networks:
+        - apps
+    restart: unless-stopped
+
+  guacamole-daemon:
+    image: guacamole/guacd
+    container_name: guacamole-daemon
+    networks:
+        - apps
+    restart: unless-stopped
+
+  shlink-server:
+    image: shlinkio/shlink:stable
+    container_name: shlink-server
+    environment:
+    - DEFAULT_DOMAIN=$DEFAULT_DOMAIN
+    - IS_HTTPS_ENABLED=true
+    - GEOLITE_LICENSE_KEY=$GEOLITE_LICENSE_KEY
+    - DB_DRIVER=$DB_DRIVER
+    - DB_USER=$DB_USER
+    - DB_PASSWORD=$DB_PASSWORD
+    - DB_HOST=$DB_HOST
+    labels:
+      - traefik.enable=true 
+      - traefik.http.middlewares.https-redirect.redirectscheme.scheme=https
+      - traefik.http.middlewares.https-redirect.redirectscheme.permanent=true
+      - traefik.http.routers.shlinkserver.rule=Host(`l.ronaldrengifo.com`)
+      - traefik.http.routers.shlinkserver.entrypoints=http
+      - traefik.http.routers.shlinkserver.middlewares=https-redirect
+      - traefik.http.routers.shlinkserver-https.rule=Host(`l.ronaldrengifo.com`)
+      - traefik.http.routers.shlinkserver-https.entrypoints=https
+      - traefik.http.services.shlinkserver.loadbalancer.server.port=8080
+      - traefik.http.routers.shlinkserver-https.tls=true
+      - traefik.http.routers.shlinkserver-https.service=shlinkserver
+      - traefik.http.routers.shlinkserver-https.tls.certresolver=letsencrypt
+    restart: unless-stopped
+    networks:
+      - apps    
+    
+  shlink-web-client:
+    image: shlinkio/shlink-web-client
+    container_name: shlink-web
+    environment:
+    - SHLINK_SERVER_URL=$SHLINK_SERVER_URL
+    - SHLINK_SERVER_API_KEY=$SHLINK_SERVER_API_KEY
+    labels:
+      - traefik.enable=true 
+      - traefik.http.middlewares.https-redirect.redirectscheme.scheme=https
+      - traefik.http.middlewares.https-redirect.redirectscheme.permanent=true
+      - traefik.http.routers.shlink.rule=Host(`short.c0d3n4m3.net`)
+      - traefik.http.routers.shlink.entrypoints=http
+      - traefik.http.routers.shlink.middlewares=https-redirect
+      - traefik.http.routers.shlink-https.rule=Host(`short.c0d3n4m3.net`)
+      - traefik.http.routers.shlink-https.entrypoints=https
+      - traefik.http.routers.shlink-https.middlewares=authelia@docker
+      - traefik.http.services.shlink.loadbalancer.server.port=80
+      - traefik.http.routers.shlink-https.tls=true
+      - traefik.http.routers.shlink-https.service=shlink
+      - traefik.http.routers.shlink-https.tls.certresolver=letsencrypt
+    volumes:
+      - type: volume
+        source: shlink
+        target: /usr/share/nginx/html/conf.d/
+        volume:
+          nocopy: true  
+    restart: unless-stopped
+    networks:
+      - apps
+
+  mysql:
+    image: mariadb:latest
+    container_name: mysql
+    labels:
+      - com.centurylinklabs.watchtower.monitor-only="true"
+    volumes:
+      - type: volume
+        source: mysql
+        target: /var/lib/mysql
+        volume:
+          nocopy: true  
+    networks:
+      - apps
+    restart: unless-stopped
+
+  littlelink-server:
+    image: timothystewart6/littlelink-server:latest
+    container_name: littlelink-server
+    environment:
+      - META_TITLE=Network Security & Cloud Engineer | Ronald Rengifo
+      - META_DESCRIPTION=Network Security & Cloud Engineer
+      - META_AUTHOR=Ronald Rengifo
+      - LANG=en
+      - META_INDEX_STATUS=all
+      - OG_SITE_NAME=Ronald Rengifo
+      - OG_TITLE=Ronald Rengifo
+#      - OG_DESCRIPTION=Ronald Rengifo
+#      - OG_URL=https://
+      - OG_IMAGE=https://avatars.githubusercontent.com/u/64389538
+      - OG_IMAGE_WIDTH=260
+      - OG_IMAGE_HEIGHT=260
+#     - GA_TRACKING_ID=G-XXXXXXXXXX
+      - THEME=Dark
+      - FAVICON_URL=https://avatars.githubusercontent.com/u/64389538
+      - AVATAR_URL=https://avatars.githubusercontent.com/u/64389538
+      - AVATAR_2X_URL=https://avatars.githubusercontent.com/u/64389538
+      - AVATAR_ALT=Ronald Rengifo Profile Pic
+      - NAME=Ronald Rengifo B
+      - BIO=Network Security & Cloud Engineer | 🇨🇴
+      # use ENV variable names for order, listed buttons will be boosted to the top
+      - BUTTON_ORDER=CV,LINKED_IN,GITHUB
+      - CUSTOM_BUTTON_TEXT=CV - Resume
+      - CUSTOM_BUTTON_URL=https://l.ronaldrengifo.com/cv
+      - CUSTOM_BUTTON_COLOR=#000000
+      - CUSTOM_BUTTON_TEXT_COLOR=#ffffff
+      - CUSTOM_BUTTON_ALT_TEXT=My Resume
+      - CUSTOM_BUTTON_NAME=CV
+      - CUSTOM_BUTTON_ICON=fas file-alt
+      - LINKED_IN=https://l.ronaldrengifo.com/linkedin
+      - GITHUB=https://l.ronaldrengifo.com/github
+      - EMAIL=hello@ronaldrengifo.com
+      - FOOTER=Ronald Rengifo © 2023
+    labels:
+      - traefik.enable=true 
+      - traefik.http.middlewares.https-redirect.redirectscheme.scheme=https
+      - traefik.http.middlewares.https-redirect.redirectscheme.permanent=true
+      - traefik.http.routers.littlelink.rule=Host(`hello.ronaldrengifo.com`)
+      - traefik.http.routers.littlelink.entrypoints=http
+      - traefik.http.routers.littlelink.middlewares=https-redirect
+      - traefik.http.routers.littlelink-https.rule=Host(`hello.ronaldrengifo.com`)
+      - traefik.http.routers.littlelink-https.entrypoints=https
+      - traefik.http.services.littlelink.loadbalancer.server.port=3000
+      - traefik.http.routers.littlelink-https.tls=true
+      - traefik.http.routers.littlelink-https.tls.certresolver=letsencrypt
+      - traefik.http.routers.littlelink-https.service=littlelink
+    restart: unless-stopped
+    networks:
+      - apps
+    security_opt:
+      - no-new-privileges:true
+
+  jenkins:
+    image: jenkins/jenkins
+    container_name: jenkins
+    ports:
+      - 8080:8080
+#    labels:
+#      - traefik.enable=true 
+#      - traefik.http.middlewares.https-redirect.redirectscheme.scheme=https
+#      - traefik.http.middlewares.https-redirect.redirectscheme.permanent=true
+#      - traefik.http.routers.jenkins.rule=Host(`jenkins.c0d3n4m3.net`)
+#      - traefik.http.routers.jenkins.entrypoints=http
+#      - traefik.http.routers.jenkins.middlewares=https-redirect
+#      - traefik.http.routers.jenkins-https.rule=Host(`jenkins.c0d3n4m3.net`)
+#      - traefik.http.routers.jenkins-https.entrypoints=https
+#      - traefik.http.routers.shlink-https.middlewares=authelia@docker
+#      - traefik.http.services.jenkins.loadbalancer.server.port=8080
+#      - traefik.http.routers.jenkins-https.tls=true
+#      - traefik.http.routers.jenkins-https.service=jenkins
+#      - traefik.http.routers.jenkins-https.tls.certresolver=letsencrypt
+    volumes:
+      - type: volume
+        source: jenkins
+        target: /var/jenkins_home
+        volume:
+          nocopy: true  
+    restart: unless-stopped
+    networks:
+      - apps
+
+networks:
+  apps:
+    external: true
+
+volumes:
+  heimdall:
+    driver_opts:
+      type: "nfs4"
+      o: "addr=10.98.184.199,nolock,soft,rw"
+      device: ":/mnt/pool0/docker/volumes/heimdall/"
+
+  shlink:
+    driver_opts:
+      type: "nfs4"
+      o: "addr=10.98.184.199,nolock,soft,rw"
+      device: ":/mnt/pool0/docker/volumes/shlink/"
+
+  mysql:
+    driver_opts:
+      type: "nfs4"
+      o: "addr=10.98.184.199,nolock,soft,rw"
+      device: ":/mnt/pool0/docker/volumes/mysql/"
+
+  jenkins:
+    driver_opts:
+      type: "nfs4"
+      o: "addr=10.98.184.199,nolock,soft,rw"
+      device: ":/mnt/pool0/docker/volumes/jenkins/"
