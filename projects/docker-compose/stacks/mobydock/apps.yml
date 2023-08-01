@@ -221,35 +221,6 @@ services:
     security_opt:
       - no-new-privileges:true
 
-  jenkins:
-    image: jenkins/jenkins
-    container_name: jenkins
-    ports:
-      - 8080:8080
-#    labels:
-#      - traefik.enable=true 
-#      - traefik.http.middlewares.https-redirect.redirectscheme.scheme=https
-#      - traefik.http.middlewares.https-redirect.redirectscheme.permanent=true
-#      - traefik.http.routers.jenkins.rule=Host(`jenkins.c0d3n4m3.net`)
-#      - traefik.http.routers.jenkins.entrypoints=http
-#      - traefik.http.routers.jenkins.middlewares=https-redirect
-#      - traefik.http.routers.jenkins-https.rule=Host(`jenkins.c0d3n4m3.net`)
-#      - traefik.http.routers.jenkins-https.entrypoints=https
-#      - traefik.http.routers.shlink-https.middlewares=authelia@docker
-#      - traefik.http.services.jenkins.loadbalancer.server.port=8080
-#      - traefik.http.routers.jenkins-https.tls=true
-#      - traefik.http.routers.jenkins-https.service=jenkins
-#      - traefik.http.routers.jenkins-https.tls.certresolver=letsencrypt
-    volumes:
-      - type: volume
-        source: jenkins
-        target: /var/jenkins_home
-        volume:
-          nocopy: true  
-    restart: unless-stopped
-    networks:
-      - apps
-
 networks:
   apps:
     external: true
