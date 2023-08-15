@@ -1,5 +1,32 @@
 version: "3.2"
 services:
+  cloudbeaver:
+    image: dbeaver/cloudbeaver:latest
+    container_name: cloudbeaver
+    labels:
+    - traefik.enable=true 
+    - traefik.http.middlewares.https-redirect.redirectscheme.scheme=https
+    - traefik.http.middlewares.https-redirect.redirectscheme.permanent=true
+    - traefik.http.routers.cloudbeaver.rule=Host(`sql.c0d3n4m3.net`)
+    - traefik.http.routers.cloudbeaver.entrypoints=http
+    - traefik.http.routers.cloudbeaver.middlewares=https-redirect
+    - traefik.http.routers.cloudbeaver-https.rule=Host(`sql.c0d3n4m3.net`)
+    - traefik.http.routers.cloudbeaver-https.entrypoints=https
+    - traefik.http.routers.cloudbeaver-https.middlewares=authelia@docker
+    - traefik.http.services.cloudbeaver.loadbalancer.server.port=8978
+    - traefik.http.routers.cloudbeaver-https.tls=true
+    - traefik.http.routers.cloudbeaver-https.service=cloudbeaver
+    - traefik.http.routers.cloudbeaver-https.tls.certresolver=letsencrypt
+    volumes:
+      - type: volume
+        source: cloudbeaver
+        target: /opt/cloudbeaver/workspace 
+        volume:
+          nocopy: true  
+    restart: unless-stopped
+    networks:
+      - apps
+
   heimdall:
     image: lscr.io/linuxserver/heimdall:latest
     container_name: heimdall
@@ -221,6 +248,110 @@ services:
     security_opt:
       - no-new-privileges:true
 
+  qbittorrent:
+    image: lscr.io/linuxserver/qbittorrent:latest
+    container_name: qbittorrent
+    environment:
+      - PUID=$PUID
+      - PGID=$PGID
+      - TZ=$TZ
+      - WEBUI_PORT=7070
+    volumes:
+      - /mnt/download/p2p:/downloads
+      - type: volume
+        source: qbittorrent
+        target: /config
+        volume:
+          nocopy: true
+    ports:
+#      - 7070:7070
+      - 6881:6881
+      - 6881:6881/udp
+    labels:
+      - traefik.enable=true 
+      - traefik.http.middlewares.https-redirect.redirectscheme.scheme=https
+      - traefik.http.middlewares.https-redirect.redirectscheme.permanent=true
+      - traefik.http.routers.qbittorrent.rule=Host(`torrent.c0d3n4m3.net`)
+      - traefik.http.routers.qbittorrent.entrypoints=http
+      - traefik.http.routers.qbittorrent.middlewares=https-redirect
+      - traefik.http.routers.qbittorrent-https.rule=Host(`torrent.c0d3n4m3.net`)
+      - traefik.http.routers.qbittorrent-https.entrypoints=https
+      - traefik.http.services.qbittorrent.loadbalancer.server.port=7070
+      - traefik.http.routers.qbittorrent-https.tls=true
+      - traefik.http.routers.qbittorrent-https.service=qbittorrent
+      - traefik.http.routers.qbittorrent-https.tls.certresolver=letsencrypt
+    networks:
+      - apps  
+    restart: unless-stopped
+
+  rustdesk-server:
+    image: rustdesk/rustdesk-server-s6:latest
+    container_name: rustdesk-server
+    restart: unless-stopped
+    environment:
+      - RELAY=desk.c0d3n4m3.net:21117
+      - ENCRYPTED_ONLY=1
+      - DB_URL=/db/db_v2.sqlite3
+#      - KEY_PRIV=$RD_KEY_PRIV
+#      - KEY_PUB=$RD_KEY_PUB
+    volumes:
+      - type: volume
+        source: rustdesk
+        target: /data
+        volume:
+          nocopy: true
+      - type: volume
+        source: rustdesk-db
+        target: /db
+        volume:
+          nocopy: true  
+    networks:
+      - apps
+    labels:
+      ## Configure Traefik Defaults
+      - traefik.docker.network=traefik-public
+      - traefik.enable=true
+      ## Configure Rustdesk TCP
+      - traefik.tcp.routers.desk-rd5.entrypoints=rd5-tcp
+      - traefik.tcp.routers.desk-rd5.rule=HostSNI(`*`)
+      - traefik.tcp.routers.desk-rd5.service=desk-rd5
+      - traefik.tcp.services.desk-rd5.loadbalancer.server.port=21115
+      - traefik.tcp.routers.desk-rd5.tls=false
+      - traefik.tcp.routers.desk-rd5.tls.passthrough=true
+
+      - traefik.tcp.routers.desk-rd6.entrypoints=rd6-tcp
+      - traefik.tcp.routers.desk-rd6.rule=HostSNI(`*`)
+      - traefik.tcp.routers.desk-rd6.service=desk-rd6
+      - traefik.tcp.services.desk-rd6.loadbalancer.server.port=21116
+      - traefik.tcp.routers.desk-rd6.tls=false
+      - traefik.tcp.routers.desk-rd6.tls.passthrough=true
+
+      - traefik.tcp.routers.desk-rd7.entrypoints=rd7-tcp
+      - traefik.tcp.routers.desk-rd7.rule=HostSNI(`*`)
+      - traefik.tcp.routers.desk-rd7.service=desk-rd7
+      - traefik.tcp.services.desk-rd7.loadbalancer.server.port=21117
+      - traefik.tcp.routers.desk-rd7.tls=false
+      - traefik.tcp.routers.desk-rd7.tls.passthrough=true
+
+      - traefik.tcp.routers.desk-rd8.entrypoints=rd8-tcp
+      - traefik.tcp.routers.desk-rd8.rule=HostSNI(`*`)
+      - traefik.tcp.routers.desk-rd8.service=desk-rd8
+      - traefik.tcp.services.desk-rd8.loadbalancer.server.port=21118
+      - traefik.tcp.routers.desk-rd8.tls=false
+      - traefik.tcp.routers.desk-rd8.tls.passthrough=true
+
+      - traefik.tcp.routers.desk-rd9.entrypoints=rd9-tcp
+      - traefik.tcp.routers.desk-rd9.rule=HostSNI(`*`)
+      - traefik.tcp.routers.desk-rd9.service=desk-rd9
+      - traefik.tcp.services.desk-rd9.loadbalancer.server.port=21119
+      - traefik.tcp.routers.desk-rd9.tls=false
+      - traefik.tcp.routers.desk-rd9.tls.passthrough=true
+
+      ## Configure Rustdesk UDP
+      - traefik.udp.routers.desk-rd6.entrypoints=rd6-udp
+      - traefik.udp.routers.desk-rd6.service=desk-rd6
+      - traefik.udp.services.desk-rd6.loadbalancer.server.port=21116
+
 networks:
   apps:
     external: true
@@ -244,8 +375,26 @@ volumes:
       o: "addr=10.98.184.199,nolock,soft,rw"
       device: ":/mnt/pool0/docker/volumes/mysql/"
 
-  jenkins:
+  cloudbeaver:
     driver_opts:
       type: "nfs4"
       o: "addr=10.98.184.199,nolock,soft,rw"
-      device: ":/mnt/pool0/docker/volumes/jenkins/"
+      device: ":/mnt/pool0/docker/volumes/cloudbeaver/"
+
+  qbittorrent:
+    driver_opts:
+      type: "nfs4"
+      o: "addr=10.98.184.199,nolock,soft,rw"
+      device: ":/mnt/pool0/docker/volumes/qbittorrent"
+
+  rustdesk:
+    driver_opts:
+      type: "nfs4"
+      o: "addr=10.98.184.199,nolock,soft,rw"
+      device: ":/mnt/pool0/docker/volumes/rustdesk/data"
+  
+  rustdesk-db:
+    driver_opts:
+      type: "nfs4"
+      o: "addr=10.98.184.199,nolock,soft,rw"
+      device: ":/mnt/pool0/docker/volumes/rustdesk/db"

@@ -2,7 +2,7 @@ version: "3.2"
 services:
 
   portainer:
-    image: portainer/portainer:latest
+    image: portainer/portainer-ce:latest
     container_name: portainer
     labels:
     - traefik.enable=true 
@@ -13,7 +13,6 @@ services:
     - traefik.http.routers.portainer.middlewares=https-redirect
     - traefik.http.routers.portainer-https.rule=Host(`portainer.c0d3n4m3.net`)
     - traefik.http.routers.portainer-https.entrypoints=https
-    - traefik.http.routers.portainer-https.middlewares=authelia@docker
     - traefik.http.services.portainer.loadbalancer.server.port=9443
     - traefik.http.services.portainer.loadbalancer.server.scheme=https
     - traefik.http.routers.portainer-https.tls=true
@@ -22,7 +21,6 @@ services:
     volumes:
       - /etc/localtime:/etc/localtime:ro
       - /var/run/docker.sock:/var/run/docker.sock:ro
-#      - /home/axl/docker/volumes/portainer/:/data
       - type: volume
         source: portainer
         target: /data

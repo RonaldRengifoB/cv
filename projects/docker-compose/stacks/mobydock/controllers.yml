@@ -1,34 +1,5 @@
 version: "3.2"
 services:
-  
-  cloudbeaver:
-    image: dbeaver/cloudbeaver:latest
-    container_name: cloudbeaver
-    labels:
-    - traefik.enable=true 
-    - traefik.http.middlewares.https-redirect.redirectscheme.scheme=https
-    - traefik.http.middlewares.https-redirect.redirectscheme.permanent=true
-    - traefik.http.routers.cloudbeaver.rule=Host(`sql.c0d3n4m3.net`)
-    - traefik.http.routers.cloudbeaver.entrypoints=http
-    - traefik.http.routers.cloudbeaver.middlewares=https-redirect
-    - traefik.http.routers.cloudbeaver-https.rule=Host(`sql.c0d3n4m3.net`)
-    - traefik.http.routers.cloudbeaver-https.entrypoints=https
-    - traefik.http.routers.cloudbeaver-https.middlewares=authelia@docker
-    - traefik.http.services.cloudbeaver.loadbalancer.server.port=8978
-    - traefik.http.routers.cloudbeaver-https.tls=true
-    - traefik.http.routers.cloudbeaver-https.service=cloudbeaver
-    - traefik.http.routers.cloudbeaver-https.tls.certresolver=letsencrypt
-    volumes:
-      - type: volume
-        source: cloudbeaver
-        target: /opt/cloudbeaver/workspace 
-        volume:
-          nocopy: true  
-    restart: unless-stopped
-    networks:
-      - apps
-      - controllers
-  
   authelia:
     image: authelia/authelia:latest
     container_name: authelia
@@ -78,16 +49,27 @@ services:
     image: "traefik:latest"
     container_name: "traefik"
     ports:
-      - "80:80"
-      - "443:443"
+      - 80:80
+      - 443:443
+      - 21115:21115/tcp
+      - 21116:21116/tcp
+      - 21117:21117/tcp
+      - 21118:21118/tcp
+      - 21119:21119/tcp
+      - 21116:21116/udp
     environment:
       - CLOUDFLARE_EMAIL=$CLOUDFLARE_EMAIL
       - CLOUDFLARE_DNS_API_TOKEN=$CLOUDFLARE_DNS_API_TOKEN
     command:
       # Enable the Traefik log, for configurations and errors
-      - --log
+      - --log.level=WARN
+      - --global.checkNewVersion=true
+      - --global.sendAnonymousUSage=false
       # Enable the Dashboard and API
-      - --api
+      - --api=true
+      - --api.insecure=true
+      - --api.dashboard=true
+      # Define providers
       - --providers.docker=true
       - --providers.docker.exposedbydefault=false
       - --providers.file.directory=/data/traefik-fileprovider.yml
@@ -98,6 +80,13 @@ services:
       - --entrypoints.http.address=:80
       # Create an entrypoint "https" listening on address 443
       - --entrypoints.https.address=:443
+      # Entry point for RustDesk server
+      - --entrypoints.rd5-tcp.address=:21115/tcp
+      - --entrypoints.rd6-tcp.address=:21116/tcp
+      - --entrypoints.rd7-tcp.address=:21117/tcp
+      - --entrypoints.rd8-tcp.address=:21118/tcp
+      - --entrypoints.rd9-tcp.address=:21119/tcp
+      - --entrypoints.rd6-udp.address=:21116/udp
       # Setup letsEncrypt por DNS Validation
       - --certificatesresolvers.letsencrypt.acme.dnschallenge=true
       - --certificatesresolvers.letsencrypt.acme.dnschallenge.provider=cloudflare
@@ -149,12 +138,6 @@ networks:
     external: true 
 
 volumes:
-  cloudbeaver:
-    driver_opts:
-      type: "nfs4"
-      o: "addr=10.98.184.199,nolock,soft,rw"
-      device: ":/mnt/pool0/docker/volumes/cloudbeaver/"
-
   authelia:
     driver_opts:
       type: "nfs4"

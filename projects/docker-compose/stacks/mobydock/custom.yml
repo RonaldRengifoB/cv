@@ -1,9 +1,7 @@
 version: "3.2"
 services:
   jenkins:
-    image: jenkins/jenkins
-    build:
-      context: dockerfile/jenkins    
+    image: jenkins-custom-ansible
     container_name: jenkins
     ports:
       - 8080:8080
