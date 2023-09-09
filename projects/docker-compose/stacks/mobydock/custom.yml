@@ -4,7 +4,7 @@ services:
     image: jenkins-custom-ansible
     container_name: jenkins
     ports:
-      - 8080:8080
+      - 8888:8080
 #    labels:
 #      - traefik.enable=true 
 #      - traefik.http.middlewares.https-redirect.redirectscheme.scheme=https

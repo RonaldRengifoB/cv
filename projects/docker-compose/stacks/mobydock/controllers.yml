@@ -3,6 +3,10 @@ services:
   authelia:
     image: authelia/authelia:latest
     container_name: authelia
+    ports:
+      - 9959:9959
+    depends_on:
+      - traefik      
     environment:
       - TZ=$TZ
       - AUTHELIA_JWT_SECRET=$AUTHELIA_JWT_SECRET
@@ -25,6 +29,7 @@ services:
     networks:
       - controllers
       - apps
+      - internal
     labels:
       - traefik.enable=true
       - traefik.http.middlewares.https-redirect.redirectscheme.scheme=https
@@ -41,9 +46,9 @@ services:
       - traefik.http.middlewares.authelia.forwardauth.address=http://authelia:9091/api/verify?rd=https://login.c0d3n4m3.net/
       - traefik.http.middlewares.authelia.forwardauth.trustForwardHeader=true
       - traefik.http.middlewares.authelia.forwardauth.authResponseHeaders=Remote-User, Remote-Groups, Remote-Name, Remote-Email
-#      - traefik.http.middlewares.authelia-basic.forwardauth.address=http://authelia:9091/api/verify?auth=basic
-#      - traefik.http.middlewares.authelia-basic.forwardauth.trustForwardHeader=true
-#      - traefik.http.middlewares.authelia-basic.forwardauth.authResponseHeaders=Remote-User, Remote-Groups, Remote-Name, Remote-Email
+      - traefik.http.middlewares.authelia-basic.forwardauth.address=http://authelia:9091/api/verify?auth=basic
+      - traefik.http.middlewares.authelia-basic.forwardauth.trustForwardHeader=true
+      - traefik.http.middlewares.authelia-basic.forwardauth.authResponseHeaders=Remote-User, Remote-Groups, Remote-Name, Remote-Email
 
   traefik:
     image: "traefik:latest"
@@ -51,6 +56,7 @@ services:
     ports:
       - 80:80
       - 443:443
+      - 8080:8080
       - 21115:21115/tcp
       - 21116:21116/tcp
       - 21117:21117/tcp
@@ -125,16 +131,15 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock:ro
     restart: always
     networks:
-    - routing
     - controllers
     - apps
 
 networks:
-  routing:
-    external: true
   controllers:
     external: true
   apps:
+    external: true 
+  internal:
     external: true 
 
 volumes:

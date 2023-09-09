@@ -54,16 +54,15 @@ services:
     - WATCHTOWER_NOTIFICATION_EMAIL_SERVER_PASSWORD=$WATCHTOWER_NOTIFICATION_EMAIL_SERVER_PASSWORD
     - WATCHTOWER_NOTIFICATION_EMAIL_DELAY=$WATCHTOWER_NOTIFICATION_EMAIL_DELAY
     - WATCHTOWER_CLEANUP=true
-    - WATCHTOWER_SCHEDULE="0 2 * * *"
+    - WATCHTOWER_SCHEDULE=0 0 2 * * ?
     volumes:
     - /var/run/docker.sock:/var/run/docker.sock
     networks:
-      - controllers  
+      - apps  
     restart: unless-stopped
 
 networks:
-
   monitoring:
     external: true
-  controllers:
+  apps:
     external: true

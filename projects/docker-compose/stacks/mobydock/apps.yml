@@ -26,6 +26,7 @@ services:
     restart: unless-stopped
     networks:
       - apps
+      - internal
 
   heimdall:
     image: lscr.io/linuxserver/heimdall:latest
@@ -110,13 +111,14 @@ services:
       - traefik.http.services.guacamole.loadbalancer.server.port=8080
     networks:
         - apps
+        - internal
     restart: unless-stopped
 
   guacamole-daemon:
     image: guacamole/guacd
     container_name: guacamole-daemon
     networks:
-        - apps
+        - internal
     restart: unless-stopped
 
   shlink-server:
@@ -145,7 +147,8 @@ services:
       - traefik.http.routers.shlinkserver-https.tls.certresolver=letsencrypt
     restart: unless-stopped
     networks:
-      - apps    
+      - apps
+      - internal    
     
   shlink-web-client:
     image: shlinkio/shlink-web-client
@@ -157,10 +160,10 @@ services:
       - traefik.enable=true 
       - traefik.http.middlewares.https-redirect.redirectscheme.scheme=https
       - traefik.http.middlewares.https-redirect.redirectscheme.permanent=true
-      - traefik.http.routers.shlink.rule=Host(`short.c0d3n4m3.net`)
+      - traefik.http.routers.shlink.rule=Host(`link.c0d3n4m3.net`)
       - traefik.http.routers.shlink.entrypoints=http
       - traefik.http.routers.shlink.middlewares=https-redirect
-      - traefik.http.routers.shlink-https.rule=Host(`short.c0d3n4m3.net`)
+      - traefik.http.routers.shlink-https.rule=Host(`link.c0d3n4m3.net`)
       - traefik.http.routers.shlink-https.entrypoints=https
       - traefik.http.routers.shlink-https.middlewares=authelia@docker
       - traefik.http.services.shlink.loadbalancer.server.port=80
@@ -189,7 +192,7 @@ services:
         volume:
           nocopy: true  
     networks:
-      - apps
+      - internal
     restart: unless-stopped
 
   littlelink-server:
@@ -215,7 +218,7 @@ services:
       - AVATAR_2X_URL=https://avatars.githubusercontent.com/u/64389538
       - AVATAR_ALT=Ronald Rengifo Profile Pic
       - NAME=Ronald Rengifo B
-      - BIO=Network Security & Cloud Engineer | 🇨🇴
+      - BIO=🖥️ Over 10 years navigating the world of Linux Servers and networks ☁️ Now embarking on a Cloud Expedition & Diving into Penetration Testing | SRE - Network Security & Cloud Operations | 🌟 AWS Certified Solutions Architect
       # use ENV variable names for order, listed buttons will be boosted to the top
       - BUTTON_ORDER=CV,LINKED_IN,GITHUB
       - CUSTOM_BUTTON_TEXT=CV - Resume
@@ -284,79 +287,86 @@ services:
       - apps  
     restart: unless-stopped
 
-  rustdesk-server:
-    image: rustdesk/rustdesk-server-s6:latest
-    container_name: rustdesk-server
-    restart: unless-stopped
+  privatebin:
+    image: privatebin/nginx-fpm-alpine:latest
+    container_name: privatebin
     environment:
-      - RELAY=desk.c0d3n4m3.net:21117
-      - ENCRYPTED_ONLY=1
-      - DB_URL=/db/db_v2.sqlite3
-#      - KEY_PRIV=$RD_KEY_PRIV
-#      - KEY_PUB=$RD_KEY_PUB
+      - TZ=$TZ
     volumes:
+      - /mnt/docker/ymls/privatebin.php:/srv/cfg/conf.php:ro
       - type: volume
-        source: rustdesk
-        target: /data
-        volume:
+        source: privatebin-data
+        target: /srv/data
+        volume: 
           nocopy: true
-      - type: volume
-        source: rustdesk-db
-        target: /db
-        volume:
-          nocopy: true  
-    networks:
-      - apps
     labels:
-      ## Configure Traefik Defaults
-      - traefik.docker.network=traefik-public
-      - traefik.enable=true
-      ## Configure Rustdesk TCP
-      - traefik.tcp.routers.desk-rd5.entrypoints=rd5-tcp
-      - traefik.tcp.routers.desk-rd5.rule=HostSNI(`*`)
-      - traefik.tcp.routers.desk-rd5.service=desk-rd5
-      - traefik.tcp.services.desk-rd5.loadbalancer.server.port=21115
-      - traefik.tcp.routers.desk-rd5.tls=false
-      - traefik.tcp.routers.desk-rd5.tls.passthrough=true
+      - traefik.enable=true 
+      - traefik.http.middlewares.https-redirect.redirectscheme.scheme=https
+      - traefik.http.middlewares.https-redirect.redirectscheme.permanent=true
+      - traefik.http.routers.privatebin.rule=Host(`bin.c0d3n4m3.net`)
+      - traefik.http.routers.privatebin.entrypoints=http
+      - traefik.http.routers.privatebin.middlewares=https-redirect
+      - traefik.http.routers.privatebin-https.rule=Host(`bin.c0d3n4m3.net`)
+      - traefik.http.routers.privatebin-https.entrypoints=https
+      - traefik.http.routers.privatebin-https.middlewares=authelia@docker
+      - traefik.http.services.privatebin.loadbalancer.server.port=8080
+      - traefik.http.routers.privatebin-https.tls=true
+      - traefik.http.routers.privatebin-https.service=privatebin
+      - traefik.http.routers.privatebin-https.tls.certresolver=letsencrypt
+    networks:
+      - apps  
+    restart: unless-stopped
 
-      - traefik.tcp.routers.desk-rd6.entrypoints=rd6-tcp
-      - traefik.tcp.routers.desk-rd6.rule=HostSNI(`*`)
-      - traefik.tcp.routers.desk-rd6.service=desk-rd6
-      - traefik.tcp.services.desk-rd6.loadbalancer.server.port=21116
-      - traefik.tcp.routers.desk-rd6.tls=false
-      - traefik.tcp.routers.desk-rd6.tls.passthrough=true
-
-      - traefik.tcp.routers.desk-rd7.entrypoints=rd7-tcp
-      - traefik.tcp.routers.desk-rd7.rule=HostSNI(`*`)
-      - traefik.tcp.routers.desk-rd7.service=desk-rd7
-      - traefik.tcp.services.desk-rd7.loadbalancer.server.port=21117
-      - traefik.tcp.routers.desk-rd7.tls=false
-      - traefik.tcp.routers.desk-rd7.tls.passthrough=true
-
-      - traefik.tcp.routers.desk-rd8.entrypoints=rd8-tcp
-      - traefik.tcp.routers.desk-rd8.rule=HostSNI(`*`)
-      - traefik.tcp.routers.desk-rd8.service=desk-rd8
-      - traefik.tcp.services.desk-rd8.loadbalancer.server.port=21118
-      - traefik.tcp.routers.desk-rd8.tls=false
-      - traefik.tcp.routers.desk-rd8.tls.passthrough=true
-
-      - traefik.tcp.routers.desk-rd9.entrypoints=rd9-tcp
-      - traefik.tcp.routers.desk-rd9.rule=HostSNI(`*`)
-      - traefik.tcp.routers.desk-rd9.service=desk-rd9
-      - traefik.tcp.services.desk-rd9.loadbalancer.server.port=21119
-      - traefik.tcp.routers.desk-rd9.tls=false
-      - traefik.tcp.routers.desk-rd9.tls.passthrough=true
-
-      ## Configure Rustdesk UDP
-      - traefik.udp.routers.desk-rd6.entrypoints=rd6-udp
-      - traefik.udp.routers.desk-rd6.service=desk-rd6
-      - traefik.udp.services.desk-rd6.loadbalancer.server.port=21116
+  syncthing:
+    image: lscr.io/linuxserver/syncthing:latest
+    container_name: syncthing
+    hostname: syncthing
+    environment:
+      - PUID=$PUID
+      - PGID=$PGID
+      - TZ=$TZ
+    volumes:
+      - /mnt/batocera:/mnt/batocera
+      - type: volume
+        source: syncthing-data
+        target: /config
+        volume: 
+          nocopy: true
+    ports:
+      - 22000:22000/tcp
+      - 22000:22000/udp
+      - 21027:21027/udp
+    labels:
+      - traefik.enable=true 
+      - traefik.http.middlewares.https-redirect.redirectscheme.scheme=https
+      - traefik.http.middlewares.https-redirect.redirectscheme.permanent=true
+      - traefik.http.routers.syncthing.rule=Host(`sync.c0d3n4m3.net`)
+      - traefik.http.routers.syncthing.entrypoints=http
+      - traefik.http.routers.syncthing.middlewares=https-redirect
+      - traefik.http.routers.syncthing-https.rule=Host(`sync.c0d3n4m3.net`)
+      - traefik.http.routers.syncthing-https.entrypoints=https
+      - traefik.http.routers.syncthing-https.middlewares=authelia@docker
+      - traefik.http.services.syncthing.loadbalancer.server.port=8384
+      - traefik.http.routers.syncthing-https.tls=true
+      - traefik.http.routers.syncthing-https.service=syncthing
+      - traefik.http.routers.syncthing-https.tls.certresolver=letsencrypt
+    networks:
+      - apps  
+    restart: unless-stopped
 
 networks:
   apps:
     external: true
+  internal:
+    external: true
 
 volumes:
+  syncthing-data:
+    driver_opts:
+      type: "nfs4"
+      o: "addr=10.98.184.199,nolock,soft,rw"
+      device: ":/mnt/pool0/docker/volumes/syncthing/"
+
   heimdall:
     driver_opts:
       type: "nfs4"
@@ -381,20 +391,20 @@ volumes:
       o: "addr=10.98.184.199,nolock,soft,rw"
       device: ":/mnt/pool0/docker/volumes/cloudbeaver/"
 
+  privatebin-data:
+    driver_opts:
+      type: "nfs4"
+      o: "addr=10.98.184.199,nolock,soft,rw"
+      device: ":/mnt/pool0/docker/volumes/privatebin"
+
   qbittorrent:
     driver_opts:
       type: "nfs4"
       o: "addr=10.98.184.199,nolock,soft,rw"
       device: ":/mnt/pool0/docker/volumes/qbittorrent"
-
-  rustdesk:
+    
+  bitwarden:
     driver_opts:
       type: "nfs4"
       o: "addr=10.98.184.199,nolock,soft,rw"
-      device: ":/mnt/pool0/docker/volumes/rustdesk/data"
-  
-  rustdesk-db:
-    driver_opts:
-      type: "nfs4"
-      o: "addr=10.98.184.199,nolock,soft,rw"
-      device: ":/mnt/pool0/docker/volumes/rustdesk/db"
+      device: ":/mnt/pool0/docker/volumes/bitwarden"

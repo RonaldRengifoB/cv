@@ -1,0 +1,89 @@
+version: "3.2"
+services:
+  rustdesk-server:
+    image: rustdesk/rustdesk-server-s6:latest
+    container_name: rustdesk-server
+    environment:
+      - RELAY=desk.c0d3n4m3.net:21117
+      - ENCRYPTED_ONLY=1
+      - DB_URL=/db/db_v2.sqlite3
+#      - KEY_PRIV=$RD_KEY_PRIV
+#      - KEY_PUB=$RD_KEY_PUB
+    volumes:
+      - type: volume
+        source: rustdesk
+        target: /data
+        volume:
+          nocopy: true
+      - type: volume
+        source: rustdesk-db
+        target: /db
+        volume:
+          nocopy: true  
+    labels:
+      ## Configure Traefik Defaults
+      - traefik.docker.network=traefik-public
+      - traefik.enable=true
+      ## Configure Rustdesk TCP
+      - traefik.tcp.routers.desk-rd5.entrypoints=rd5-tcp
+      - traefik.tcp.routers.desk-rd5.rule=HostSNI(`*`)
+      - traefik.tcp.routers.desk-rd5.service=desk-rd5
+      - traefik.tcp.services.desk-rd5.loadbalancer.server.port=21115
+      - traefik.tcp.routers.desk-rd5.tls=false
+      - traefik.tcp.routers.desk-rd5.tls.passthrough=true
+
+      - traefik.tcp.routers.desk-rd6.entrypoints=rd6-tcp
+      - traefik.tcp.routers.desk-rd6.rule=HostSNI(`*`)
+      - traefik.tcp.routers.desk-rd6.service=desk-rd6
+      - traefik.tcp.services.desk-rd6.loadbalancer.server.port=21116
+      - traefik.tcp.routers.desk-rd6.tls=false
+      - traefik.tcp.routers.desk-rd6.tls.passthrough=true
+
+      - traefik.tcp.routers.desk-rd7.entrypoints=rd7-tcp
+      - traefik.tcp.routers.desk-rd7.rule=HostSNI(`*`)
+      - traefik.tcp.routers.desk-rd7.service=desk-rd7
+      - traefik.tcp.services.desk-rd7.loadbalancer.server.port=21117
+      - traefik.tcp.routers.desk-rd7.tls=false
+      - traefik.tcp.routers.desk-rd7.tls.passthrough=true
+
+      - traefik.tcp.routers.desk-rd8.entrypoints=rd8-tcp
+      - traefik.tcp.routers.desk-rd8.rule=HostSNI(`*`)
+      - traefik.tcp.routers.desk-rd8.service=desk-rd8
+      - traefik.tcp.services.desk-rd8.loadbalancer.server.port=21118
+      - traefik.tcp.routers.desk-rd8.tls=false
+      - traefik.tcp.routers.desk-rd8.tls.passthrough=true
+
+      - traefik.tcp.routers.desk-rd9.entrypoints=rd9-tcp
+      - traefik.tcp.routers.desk-rd9.rule=HostSNI(`*`)
+      - traefik.tcp.routers.desk-rd9.service=desk-rd9
+      - traefik.tcp.services.desk-rd9.loadbalancer.server.port=21119
+      - traefik.tcp.routers.desk-rd9.tls=false
+      - traefik.tcp.routers.desk-rd9.tls.passthrough=true
+
+      ## Configure Rustdesk UDP
+      - traefik.udp.routers.desk-rd6.entrypoints=rd6-udp
+      - traefik.udp.routers.desk-rd6.service=desk-rd6
+      - traefik.udp.services.desk-rd6.loadbalancer.server.port=21116
+    networks:
+      - apps
+    restart: unless-stopped
+
+
+networks:
+  apps:
+    external: true
+  internal:
+    external: true
+
+volumes:
+  rustdesk:
+    driver_opts:
+      type: "nfs4"
+      o: "addr=10.98.184.199,nolock,soft,rw"
+      device: ":/mnt/pool0/docker/volumes/rustdesk/data"
+  
+  rustdesk-db:
+    driver_opts:
+      type: "nfs4"
+      o: "addr=10.98.184.199,nolock,soft,rw"
+      device: ":/mnt/pool0/docker/volumes/rustdesk/db"
