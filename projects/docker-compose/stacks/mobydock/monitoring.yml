@@ -58,11 +58,14 @@ services:
     volumes:
     - /var/run/docker.sock:/var/run/docker.sock
     networks:
-      - apps  
+      - monitoring  
     restart: unless-stopped
 
 networks:
   monitoring:
-    external: true
-  apps:
-    external: true
+    name: monitoring
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.98.184.32/28
+          gateway: 172.98.184.46

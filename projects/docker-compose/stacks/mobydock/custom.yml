@@ -1,7 +1,8 @@
 version: "3.2"
 services:
   jenkins:
-    image: jenkins-custom-ansible
+#pending change to custom ansible-jenkins image
+    image: jenkins/jenkins 
     container_name: jenkins
     ports:
       - 8888:8080
@@ -27,11 +28,17 @@ services:
           nocopy: true  
     restart: unless-stopped
     networks:
-      - apps
+      - internalapps
 
 networks:
-  apps:
-    external: true
+  internalapps:
+    name: internalapps
+    internal: true
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.98.184.64/27
+          gateway: 172.98.184.94
 
 volumes:
   jenkins:

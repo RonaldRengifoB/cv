@@ -24,22 +24,6 @@ services:
       - AUTHELIA_STORAGE_ENCRYPTION_KEY=$AUTHELIA_STORAGE_ENCRYPTION_KEY
       - AUTHELIA_STORAGE_MYSQL_PASSWORD=$AUTHELIA_STORAGE_MYSQL_PASSWORD
       - AUTHELIA_NOTIFIER_SMTP_PASSWORD=$AUTHELIA_NOTIFIER_SMTP_PASSWORD
-    volumes:
-      - type: volume
-        source: authelia
-        target: /config 
-        volume:
-          nocopy: true
-      - type: volume
-        source: authelia-secrets
-        target: /config/secrets 
-        volume:
-          nocopy: true    
-    restart: unless-stopped
-    networks:
-      - controllers
-      - apps
-      - internal
     labels:
       - traefik.enable=true
       - traefik.http.middlewares.https-redirect.redirectscheme.scheme=https
@@ -59,6 +43,22 @@ services:
       - traefik.http.middlewares.authelia-basic.forwardauth.address=http://authelia:9091/api/verify?auth=basic
       - traefik.http.middlewares.authelia-basic.forwardauth.trustForwardHeader=true
       - traefik.http.middlewares.authelia-basic.forwardauth.authResponseHeaders=Remote-User, Remote-Groups, Remote-Name, Remote-Email
+    volumes:
+      - type: volume
+        source: authelia
+        target: /config 
+        volume:
+          nocopy: true
+      - type: volume
+        source: authelia-secrets
+        target: /config/secrets 
+        volume:
+          nocopy: true    
+    restart: unless-stopped
+    networks:
+      - controllers
+      - internalapps
+
 
   traefik:
     image: "traefik:latest"
@@ -144,15 +144,24 @@ services:
     restart: always
     networks:
     - controllers
-    - apps
+    - internalapps
 
 networks:
+  internalapps:
+    name: internalapps
+    internal: true
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.98.184.64/27
+          gateway: 172.98.184.94
   controllers:
-    external: true
-  apps:
-    external: true 
-  internal:
-    external: true 
+    name: controllers
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.98.184.16/28
+          gateway: 172.98.184.30
 
 volumes:
   authelia:

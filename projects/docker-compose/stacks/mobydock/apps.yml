@@ -25,8 +25,7 @@ services:
           nocopy: true  
     restart: unless-stopped
     networks:
-      - apps
-      - internal
+      - internalapps
 
   heimdall:
     image: lscr.io/linuxserver/heimdall:latest
@@ -57,7 +56,7 @@ services:
           nocopy: true
     restart: unless-stopped
     networks:
-      - apps 
+      - internalapps 
     
   dashy:
     image: lissy93/dashy:latest
@@ -83,7 +82,7 @@ services:
       - /mnt/docker/ymls/dashy-config.yml:/app/public/conf.yml
     restart: unless-stopped
     networks:
-      - apps 
+      - internalapps 
 
   guacamole:
     image: guacamole/guacamole
@@ -110,15 +109,14 @@ services:
       - traefik.http.routers.guacamole-https.tls.certresolver=letsencrypt
       - traefik.http.services.guacamole.loadbalancer.server.port=8080
     networks:
-        - apps
-        - internal
+        - internalapps
     restart: unless-stopped
 
   guacamole-daemon:
     image: guacamole/guacd
     container_name: guacamole-daemon
     networks:
-        - internal
+        - internalapps
     restart: unless-stopped
 
   shlink-server:
@@ -147,8 +145,7 @@ services:
       - traefik.http.routers.shlinkserver-https.tls.certresolver=letsencrypt
     restart: unless-stopped
     networks:
-      - apps
-      - internal    
+      - internalapps    
     
   shlink-web-client:
     image: shlinkio/shlink-web-client
@@ -178,7 +175,7 @@ services:
           nocopy: true  
     restart: unless-stopped
     networks:
-      - apps
+      - internalapps
 
   mysql:
     image: mariadb:latest
@@ -192,7 +189,7 @@ services:
         volume:
           nocopy: true  
     networks:
-      - internal
+      - internalapps
     restart: unless-stopped
 
   littlelink-server:
@@ -247,7 +244,7 @@ services:
       - traefik.http.routers.littlelink-https.service=littlelink
     restart: unless-stopped
     networks:
-      - apps
+      - internalapps
     security_opt:
       - no-new-privileges:true
 
@@ -267,7 +264,6 @@ services:
         volume:
           nocopy: true
     ports:
-#      - 7070:7070
       - 6881:6881
       - 6881:6881/udp
     labels:
@@ -284,7 +280,8 @@ services:
       - traefik.http.routers.qbittorrent-https.service=qbittorrent
       - traefik.http.routers.qbittorrent-https.tls.certresolver=letsencrypt
     networks:
-      - apps  
+      - apps
+      - internalapps  
     restart: unless-stopped
 
   privatebin:
@@ -308,13 +305,12 @@ services:
       - traefik.http.routers.privatebin.middlewares=https-redirect
       - traefik.http.routers.privatebin-https.rule=Host(`bin.c0d3n4m3.net`)
       - traefik.http.routers.privatebin-https.entrypoints=https
-      - traefik.http.routers.privatebin-https.middlewares=authelia@docker
       - traefik.http.services.privatebin.loadbalancer.server.port=8080
       - traefik.http.routers.privatebin-https.tls=true
       - traefik.http.routers.privatebin-https.service=privatebin
       - traefik.http.routers.privatebin-https.tls.certresolver=letsencrypt
     networks:
-      - apps  
+      - internalapps  
     restart: unless-stopped
 
   syncthing:
@@ -351,14 +347,26 @@ services:
       - traefik.http.routers.syncthing-https.service=syncthing
       - traefik.http.routers.syncthing-https.tls.certresolver=letsencrypt
     networks:
-      - apps  
+      - apps
+      - internalapps  
     restart: unless-stopped
 
 networks:
+  internalapps:
+    name: internalapps
+    internal: true
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.98.184.64/27
+          gateway: 172.98.184.94
   apps:
-    external: true
-  internal:
-    external: true
+    name: apps
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.98.184.0/28
+          gateway: 172.98.184.14
 
 volumes:
   syncthing-data:

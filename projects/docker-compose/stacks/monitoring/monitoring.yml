@@ -211,7 +211,7 @@ services:
       - UP_UNIFI_DEFAULT_URL=$UP_UNIFI_DEFAULT_URL
       - UP_UNIFI_DEFAULT_SAVE_DPI=$UP_UNIFI_DEFAULT_SAVE_DPI
     networks:
-    - monitoring  
+      - monitoring  
     restart: unless-stopped
 
   watchtower:
@@ -231,14 +231,17 @@ services:
     volumes:
     - /var/run/docker.sock:/var/run/docker.sock
     networks:
-      - apps  
+      - monitoring  
     restart: unless-stopped
 
 networks:
   monitoring:
-    external: true
-  apps:
-    external: true
+    name: monitoring
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.98.184.32/28
+          gateway: 172.98.184.46
 
 volumes:
   grafana:

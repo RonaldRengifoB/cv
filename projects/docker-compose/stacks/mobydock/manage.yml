@@ -29,10 +29,15 @@ services:
     restart: unless-stopped
     networks:
       - controllers
-  
-networks:
+
+networks:  
   controllers:
-    external: true
+    name: controllers
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.98.184.16/28
+          gateway: 172.98.184.30
 
 volumes:
   portainer:
