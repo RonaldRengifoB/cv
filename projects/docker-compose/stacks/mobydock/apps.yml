@@ -402,9 +402,3 @@ volumes:
       type: "nfs4"
       o: "addr=10.98.184.199,nolock,soft,rw"
       device: ":/mnt/pool0/docker/volumes/qbittorrent"
-    
-  bitwarden:
-    driver_opts:
-      type: "nfs4"
-      o: "addr=10.98.184.199,nolock,soft,rw"
-      device: ":/mnt/pool0/docker/volumes/bitwarden"

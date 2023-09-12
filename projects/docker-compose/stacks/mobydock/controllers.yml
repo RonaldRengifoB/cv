@@ -1,5 +1,15 @@
 version: "3.2"
 services:
+  cloudflared:
+    container_name: cloudflared
+    image: cloudflare/cloudflared
+    restart: unless-stopped
+    command: tunnel run
+    environment:
+      - TUNNEL_TOKEN=$TUNNEL_TOKEN
+    networks:
+      - controllers
+  
   authelia:
     image: authelia/authelia:latest
     container_name: authelia
@@ -53,16 +63,18 @@ services:
   traefik:
     image: "traefik:latest"
     container_name: "traefik"
+# ports disabled because we are using cloudflare tunnel
+#    ports:
+#      - 80:80
+#      - 443:443
+#      - 21115:21115/tcp
+#      - 21116:21116/tcp
+#      - 21117:21117/tcp
+#      - 21118:21118/tcp
+#      - 21119:21119/tcp
+#      - 21116:21116/udp
     ports:
-      - 80:80
-      - 443:443
       - 8080:8080
-      - 21115:21115/tcp
-      - 21116:21116/tcp
-      - 21117:21117/tcp
-      - 21118:21118/tcp
-      - 21119:21119/tcp
-      - 21116:21116/udp
     environment:
       - CLOUDFLARE_EMAIL=$CLOUDFLARE_EMAIL
       - CLOUDFLARE_DNS_API_TOKEN=$CLOUDFLARE_DNS_API_TOKEN
