@@ -143,47 +143,6 @@ services:
     - controllers
     - internalapps
 
-  pihole:
-    container_name: pihole
-    image: pihole/pihole:latest
-# For DHCP it is recommended to remove these ports and instead add: network_mode: "host"
-    ports:
-      - "53:53/tcp"
-      - "53:53/udp"
-#      - "67:67/udp" # Only required if you are using Pi-hole as your DHCP server
-    environment:
-      - TZ=$TZ
-      - WEBPASSWORD=$WEBPASSWORD
-    labels:
-    - traefik.enable=true 
-    - traefik.http.routers.pihole.rule=Host(`dns.c0d3n4m3.net`)
-    - traefik.http.routers.pihole.entrypoints=http
-    - traefik.http.routers.pihole.middlewares=https-redirect
-    - traefik.http.routers.pihole-https.rule=Host(`dns.c0d3n4m3.net`)
-    - traefik.http.routers.pihole-https.entrypoints=https
-    - traefik.http.services.pihole.loadbalancer.server.port=80
-    - traefik.http.routers.pihole-https.tls=true
-    - traefik.http.routers.pihole-https.service=pihole
-    - traefik.http.routers.pihole-https.tls.certresolver=letsencrypt
-    volumes:
-      - type: volume
-        source: pihole
-        target: /etc/pihole
-        volume:
-          nocopy: true
-      
-      - type: volume
-        source: pihole-dnsmasq
-        target: /etc/dnsmasq.d
-        volume:
-          nocopy: true
-#   https://github.com/pi-hole/docker-pi-hole#note-on-capabilities
-#    cap_add:
-#      - NET_ADMIN # Required if you are using Pi-hole as your DHCP server, else not needed
-    restart: unless-stopped
-    networks:
-      - controllers
-
 networks:
   internalapps:
     name: internalapps
@@ -213,15 +172,3 @@ volumes:
       type: "nfs4"
       o: "addr=10.98.184.199,nolock,soft,ro"
       device: ":/mnt/pool0/docker/volumes/authelia/secrets/"
-  
-  pihole:
-    driver_opts:
-      type: "nfs4"
-      o: "addr=10.98.184.199,nolock,soft,rw"
-      device: ":/mnt/pool0/docker/volumes/pihole/"
-
-  pihole-dnsmasq:
-    driver_opts:
-      type: "nfs4"
-      o: "addr=10.98.184.199,nolock,soft,rw"
-      device: ":/mnt/pool0/docker/volumes/pihole-dnsmasq.d/"

@@ -261,6 +261,8 @@ services:
       - traefik.http.routers.qbittorrent.middlewares=https-redirect
       - traefik.http.routers.qbittorrent-https.rule=Host(`torrent.c0d3n4m3.net`)
       - traefik.http.routers.qbittorrent-https.entrypoints=https
+#check connectivity with external apps
+#      - traefik.http.routers.qbittorrent-https.middlewares=authelia@docker 
       - traefik.http.services.qbittorrent.loadbalancer.server.port=7070
       - traefik.http.routers.qbittorrent-https.tls=true
       - traefik.http.routers.qbittorrent-https.service=qbittorrent
