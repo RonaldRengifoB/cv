@@ -3,19 +3,19 @@ services:
 
   portainer:
     image: portainer/portainer-ce:latest
-    container_name: portainer
+    container_name: $PORTAINER_SERVICE_NAME
     labels:
     - traefik.enable=true 
-    - traefik.http.routers.portainer.rule=Host(`portainer.c0d3n4m3.net`)
-    - traefik.http.routers.portainer.entrypoints=http
-    - traefik.http.routers.portainer.middlewares=https-redirect
-    - traefik.http.routers.portainer-https.rule=Host(`portainer.c0d3n4m3.net`)
-    - traefik.http.routers.portainer-https.entrypoints=https
-    - traefik.http.services.portainer.loadbalancer.server.port=9443
-    - traefik.http.services.portainer.loadbalancer.server.scheme=https
-    - traefik.http.routers.portainer-https.tls=true
-    - traefik.http.routers.portainer-https.service=portainer
-    - traefik.http.routers.portainer-https.tls.certresolver=letsencrypt
+    - traefik.http.routers.$PORTAINER_SERVICE_NAME.rule=Host(`$PORTAINER_SERVICE_NAME.$DOMAIN`)
+    - traefik.http.routers.$PORTAINER_SERVICE_NAME.entrypoints=http
+    - traefik.http.routers.$PORTAINER_SERVICE_NAME.middlewares=https-redirect
+    - traefik.http.routers.$PORTAINER_SERVICE_NAME-https.rule=Host(`$PORTAINER_SERVICE_NAME.$DOMAIN`)
+    - traefik.http.routers.$PORTAINER_SERVICE_NAME-https.entrypoints=https
+    - traefik.http.routers.$PORTAINER_SERVICE_NAME-https.tls=true
+    - traefik.http.routers.$PORTAINER_SERVICE_NAME-https.service=$PORTAINER_SERVICE_NAME
+    - traefik.http.routers.$PORTAINER_SERVICE_NAME-https.tls.certresolver=$CERTRESOLVER
+    - traefik.http.services.$PORTAINER_SERVICE_NAME.loadbalancer.server.port=9443
+    - traefik.http.services.$PORTAINER_SERVICE_NAME.loadbalancer.server.scheme=https
     volumes:
       - /etc/localtime:/etc/localtime:ro
       - /var/run/docker.sock:/var/run/docker.sock:ro
@@ -34,12 +34,12 @@ networks:
     ipam:
       driver: default
       config:
-        - subnet: 172.98.184.16/28
-          gateway: 172.98.184.30
+        - subnet: $CONTROLLERS_SUBNET
+          gateway: $CONTROLLERS_GW
 
 volumes:
   portainer:
     driver_opts:
       type: "nfs4"
-      o: "addr=10.98.184.199,nolock,soft,rw"
-      device: ":/mnt/pool0/docker/volumes/portainer/"    
+      o: "$NAS_ADDR,$NAS_MOUNT_PARAMS"
+      device: "$NAS_PATH/portainer/"    

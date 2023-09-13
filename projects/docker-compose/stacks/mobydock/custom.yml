@@ -14,10 +14,10 @@ services:
 #      - traefik.http.routers.jenkins-https.rule=Host(`jenkins.c0d3n4m3.net`)
 #      - traefik.http.routers.jenkins-https.entrypoints=https
 #      - traefik.http.routers.shlink-https.middlewares=authelia@docker
-#      - traefik.http.services.jenkins.loadbalancer.server.port=8080
 #      - traefik.http.routers.jenkins-https.tls=true
 #      - traefik.http.routers.jenkins-https.service=jenkins
 #      - traefik.http.routers.jenkins-https.tls.certresolver=letsencrypt
+#      - traefik.http.services.jenkins.loadbalancer.server.port=8080
     volumes:
       - type: volume
         source: jenkins

@@ -34,13 +34,13 @@ services:
       - traefik.http.routers.authelia-https.tls=true
       - traefik.http.routers.authelia-https.service=authelia
       - traefik.http.routers.authelia-https.tls.certresolver=letsencrypt
-      - traefik.http.services.authelia.loadbalancer.server.port=9091  
       - traefik.http.middlewares.authelia.forwardauth.address=http://authelia:9091/api/verify?rd=https://login.c0d3n4m3.net/
       - traefik.http.middlewares.authelia.forwardauth.trustForwardHeader=true
       - traefik.http.middlewares.authelia.forwardauth.authResponseHeaders=Remote-User, Remote-Groups, Remote-Name, Remote-Email
       - traefik.http.middlewares.authelia-basic.forwardauth.address=http://authelia:9091/api/verify?auth=basic
       - traefik.http.middlewares.authelia-basic.forwardauth.trustForwardHeader=true
       - traefik.http.middlewares.authelia-basic.forwardauth.authResponseHeaders=Remote-User, Remote-Groups, Remote-Name, Remote-Email
+      - traefik.http.services.authelia.loadbalancer.server.port=9091  
     volumes:
       - type: volume
         source: authelia
@@ -130,10 +130,6 @@ services:
       - traefik.http.routers.traefik-https.service=api@internal
       # Use the Let's Encrypt resolver created below
       - traefik.http.routers.traefik-https.tls.certresolver=letsencrypt
-      # Enable password auth
-#      - traefik.http.routers.traefik.middlewares=auth 
-      # Substitute with your htpasswd string and escape dollar signs!
-#      - traefik.http.middlewares.auth.basicauth.users=axl:$$apr1$$n3ok58fw$$l91RqHavFji06G5CMtHUd1
     volumes:
       - /mnt/docker/ymls/:/data/traefik-fileprovider.yml #yml with routes for external servers
       - /mnt/docker/certs/:/data/letsencrypt/acme.json

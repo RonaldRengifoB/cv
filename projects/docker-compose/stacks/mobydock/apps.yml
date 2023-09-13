@@ -5,18 +5,16 @@ services:
     container_name: cloudbeaver
     labels:
     - traefik.enable=true 
-    - traefik.http.middlewares.https-redirect.redirectscheme.scheme=https
-    - traefik.http.middlewares.https-redirect.redirectscheme.permanent=true
-    - traefik.http.routers.cloudbeaver.rule=Host(`sql.c0d3n4m3.net`)
+    - traefik.http.routers.cloudbeaver.rule=Host(`sql.$DOMAIN`)
     - traefik.http.routers.cloudbeaver.entrypoints=http
     - traefik.http.routers.cloudbeaver.middlewares=https-redirect
-    - traefik.http.routers.cloudbeaver-https.rule=Host(`sql.c0d3n4m3.net`)
+    - traefik.http.routers.cloudbeaver-https.rule=Host(`sql.$DOMAIN`)
     - traefik.http.routers.cloudbeaver-https.entrypoints=https
     - traefik.http.routers.cloudbeaver-https.middlewares=authelia@docker
-    - traefik.http.services.cloudbeaver.loadbalancer.server.port=8978
     - traefik.http.routers.cloudbeaver-https.tls=true
     - traefik.http.routers.cloudbeaver-https.service=cloudbeaver
-    - traefik.http.routers.cloudbeaver-https.tls.certresolver=letsencrypt
+    - traefik.http.routers.cloudbeaver-https.tls.certresolver=$CERTRESOLVER
+    - traefik.http.services.cloudbeaver.loadbalancer.server.port=8978
     volumes:
       - type: volume
         source: cloudbeaver
@@ -35,17 +33,17 @@ services:
       - PGID=$PGID
     labels:
     - traefik.enable=true 
-    - traefik.http.routers.heimdall.rule=Host(`entertainment.c0d3n4m3.net`)
+    - traefik.http.routers.heimdall.rule=Host(`entertainment.$DOMAIN`)
     - traefik.http.routers.heimdall.entrypoints=http
     - traefik.http.routers.heimdall.middlewares=https-redirect
-    - traefik.http.routers.heimdall-https.rule=Host(`entertainment.c0d3n4m3.net`)
+    - traefik.http.routers.heimdall-https.rule=Host(`entertainment.$DOMAIN`)
     - traefik.http.routers.heimdall-https.entrypoints=https
     - traefik.http.routers.heimdall-https.middlewares=authelia@docker
-    - traefik.http.services.heimdall.loadbalancer.server.port=443
-    - traefik.http.services.heimdall.loadbalancer.server.scheme=https
     - traefik.http.routers.heimdall-https.tls=true
     - traefik.http.routers.heimdall-https.service=heimdall
-    - traefik.http.routers.heimdall-https.tls.certresolver=letsencrypt
+    - traefik.http.routers.heimdall-https.tls.certresolver=$CERTRESOLVER
+    - traefik.http.services.heimdall.loadbalancer.server.port=443
+    - traefik.http.services.heimdall.loadbalancer.server.scheme=https
     volumes:
       - type: volume
         source: heimdall
@@ -64,16 +62,16 @@ services:
       - PGID=$PGID
     labels:
     - traefik.enable=true 
-    - traefik.http.routers.dashy.rule=Host(`dash.c0d3n4m3.net`)
+    - traefik.http.routers.dashy.rule=Host(`dash.$DOMAIN`)
     - traefik.http.routers.dashy.entrypoints=http
     - traefik.http.routers.dashy.middlewares=https-redirect
-    - traefik.http.routers.dashy-https.rule=Host(`dash.c0d3n4m3.net`)
+    - traefik.http.routers.dashy-https.rule=Host(`dash.$DOMAIN`)
     - traefik.http.routers.dashy-https.entrypoints=https
     - traefik.http.routers.dashy-https.middlewares=authelia@docker
-    - traefik.http.services.dashy.loadbalancer.server.port=80
     - traefik.http.routers.dashy-https.tls=true
     - traefik.http.routers.dashy-https.service=dashy
-    - traefik.http.routers.dashy-https.tls.certresolver=letsencrypt
+    - traefik.http.routers.dashy-https.tls.certresolver=$CERTRESOLVER
+    - traefik.http.services.dashy.loadbalancer.server.port=80
     volumes:
       - /mnt/docker/ymls/dashy-config.yml:/app/public/conf.yml
     restart: unless-stopped
@@ -91,17 +89,17 @@ services:
       - GUACD_HOSTNAME=$GUACD_HOSTNAME
     labels:
       - traefik.enable=true 
-      - traefik.http.middlewares.guacamole-prefix.addprefix.prefix=/guacamole
-      - traefik.http.routers.guacamole.rule=Host(`remote.c0d3n4m3.net`)
+      - traefik.http.routers.guacamole.rule=Host(`remote.$DOMAIN`)
       - traefik.http.routers.guacamole.entrypoints=http
       - traefik.http.routers.guacamole.middlewares=https-redirect
-      - traefik.http.routers.guacamole-https.rule=Host(`remote.c0d3n4m3.net`)
+      - traefik.http.routers.guacamole-https.rule=Host(`remote.$DOMAIN`)
       - traefik.http.routers.guacamole-https.entrypoints=https
       - traefik.http.routers.guacamole-https.middlewares=guacamole-prefix
       - traefik.http.routers.guacamole-https.tls=true
       - traefik.http.routers.guacamole-https.service=guacamole
-      - traefik.http.routers.guacamole-https.tls.certresolver=letsencrypt
+      - traefik.http.routers.guacamole-https.tls.certresolver=$CERTRESOLVER
       - traefik.http.services.guacamole.loadbalancer.server.port=8080
+      - traefik.http.middlewares.guacamole-prefix.addprefix.prefix=/guacamole
     networks:
         - internalapps
     restart: unless-stopped
@@ -113,7 +111,7 @@ services:
         - internalapps
     restart: unless-stopped
 
-  shlink-server:
+  shlink-daemon:
     image: shlinkio/shlink:stable
     container_name: shlink-server
     environment:
@@ -126,15 +124,15 @@ services:
     - DB_HOST=$DB_HOST
     labels:
       - traefik.enable=true 
-      - traefik.http.routers.shlinkserver.rule=Host(`l.ronaldrengifo.com`)
+      - traefik.http.routers.shlinkserver.rule=Host(`l.$DOMAIN_FORMAL`)
       - traefik.http.routers.shlinkserver.entrypoints=http
       - traefik.http.routers.shlinkserver.middlewares=https-redirect
-      - traefik.http.routers.shlinkserver-https.rule=Host(`l.ronaldrengifo.com`)
+      - traefik.http.routers.shlinkserver-https.rule=Host(`l.$DOMAIN_FORMAL`)
       - traefik.http.routers.shlinkserver-https.entrypoints=https
-      - traefik.http.services.shlinkserver.loadbalancer.server.port=8080
       - traefik.http.routers.shlinkserver-https.tls=true
       - traefik.http.routers.shlinkserver-https.service=shlinkserver
-      - traefik.http.routers.shlinkserver-https.tls.certresolver=letsencrypt
+      - traefik.http.routers.shlinkserver-https.tls.certresolver=$CERTRESOLVER
+      - traefik.http.services.shlinkserver.loadbalancer.server.port=8080
     restart: unless-stopped
     networks:
       - internalapps    
@@ -143,20 +141,20 @@ services:
     image: shlinkio/shlink-web-client
     container_name: shlink-web
     environment:
-    - SHLINK_SERVER_URL=$SHLINK_SERVER_URL
+    - SHLINK_SERVER_URL=https://$SHLINK_DEFAULT_DOMAIN
     - SHLINK_SERVER_API_KEY=$SHLINK_SERVER_API_KEY
     labels:
       - traefik.enable=true 
-      - traefik.http.routers.shlink.rule=Host(`link.c0d3n4m3.net`)
+      - traefik.http.routers.shlink.rule=Host(`link.$DOMAIN`)
       - traefik.http.routers.shlink.entrypoints=http
       - traefik.http.routers.shlink.middlewares=https-redirect
-      - traefik.http.routers.shlink-https.rule=Host(`link.c0d3n4m3.net`)
+      - traefik.http.routers.shlink-https.rule=Host(`link.$DOMAIN`)
       - traefik.http.routers.shlink-https.entrypoints=https
       - traefik.http.routers.shlink-https.middlewares=authelia@docker
-      - traefik.http.services.shlink.loadbalancer.server.port=80
       - traefik.http.routers.shlink-https.tls=true
       - traefik.http.routers.shlink-https.service=shlink
-      - traefik.http.routers.shlink-https.tls.certresolver=letsencrypt
+      - traefik.http.routers.shlink-https.tls.certresolver=$CERTRESOLVER
+      - traefik.http.services.shlink.loadbalancer.server.port=80
     volumes:
       - type: volume
         source: shlink
@@ -209,27 +207,27 @@ services:
       # use ENV variable names for order, listed buttons will be boosted to the top
       - BUTTON_ORDER=CV,LINKED_IN,GITHUB
       - CUSTOM_BUTTON_TEXT=CV - Resume
-      - CUSTOM_BUTTON_URL=https://l.ronaldrengifo.com/cv
+      - CUSTOM_BUTTON_URL=https://l.$DOMAIN_FORMAL/cv
       - CUSTOM_BUTTON_COLOR=#000000
       - CUSTOM_BUTTON_TEXT_COLOR=#ffffff
       - CUSTOM_BUTTON_ALT_TEXT=My Resume
       - CUSTOM_BUTTON_NAME=CV
       - CUSTOM_BUTTON_ICON=fas file-alt
-      - LINKED_IN=https://l.ronaldrengifo.com/linkedin
-      - GITHUB=https://l.ronaldrengifo.com/github
-      - EMAIL=hello@ronaldrengifo.com
+      - LINKED_IN=https://l.$DOMAIN_FORMAL/linkedin
+      - GITHUB=https://l.$DOMAIN_FORMAL/github
+      - EMAIL=hello@$DOMAIN_FORMAL
       - FOOTER=Ronald Rengifo © 2023
     labels:
       - traefik.enable=true 
-      - traefik.http.routers.littlelink.rule=Host(`hello.ronaldrengifo.com`)
+      - traefik.http.routers.littlelink.rule=Host(`hello.$DOMAIN_FORMAL`)
       - traefik.http.routers.littlelink.entrypoints=http
       - traefik.http.routers.littlelink.middlewares=https-redirect
-      - traefik.http.routers.littlelink-https.rule=Host(`hello.ronaldrengifo.com`)
+      - traefik.http.routers.littlelink-https.rule=Host(`hello.$DOMAIN_FORMAL`)
       - traefik.http.routers.littlelink-https.entrypoints=https
-      - traefik.http.services.littlelink.loadbalancer.server.port=3000
       - traefik.http.routers.littlelink-https.tls=true
-      - traefik.http.routers.littlelink-https.tls.certresolver=letsencrypt
+      - traefik.http.routers.littlelink-https.tls.certresolver=$CERTRESOLVER
       - traefik.http.routers.littlelink-https.service=littlelink
+      - traefik.http.services.littlelink.loadbalancer.server.port=3000
     restart: unless-stopped
     networks:
       - internalapps
@@ -256,17 +254,17 @@ services:
       - 6881:6881/udp
     labels:
       - traefik.enable=true 
-      - traefik.http.routers.qbittorrent.rule=Host(`torrent.c0d3n4m3.net`)
+      - traefik.http.routers.qbittorrent.rule=Host(`torrent.$DOMAIN`)
       - traefik.http.routers.qbittorrent.entrypoints=http
       - traefik.http.routers.qbittorrent.middlewares=https-redirect
-      - traefik.http.routers.qbittorrent-https.rule=Host(`torrent.c0d3n4m3.net`)
+      - traefik.http.routers.qbittorrent-https.rule=Host(`torrent.$DOMAIN`)
       - traefik.http.routers.qbittorrent-https.entrypoints=https
 #check connectivity with external apps
 #      - traefik.http.routers.qbittorrent-https.middlewares=authelia@docker 
-      - traefik.http.services.qbittorrent.loadbalancer.server.port=7070
       - traefik.http.routers.qbittorrent-https.tls=true
       - traefik.http.routers.qbittorrent-https.service=qbittorrent
-      - traefik.http.routers.qbittorrent-https.tls.certresolver=letsencrypt
+      - traefik.http.routers.qbittorrent-https.tls.certresolver=$CERTRESOLVER
+      - traefik.http.services.qbittorrent.loadbalancer.server.port=7070
     networks:
       - apps
       - internalapps  
@@ -286,15 +284,15 @@ services:
           nocopy: true
     labels:
       - traefik.enable=true 
-      - traefik.http.routers.privatebin.rule=Host(`bin.c0d3n4m3.net`)
+      - traefik.http.routers.privatebin.rule=Host(`bin.$DOMAIN`)
       - traefik.http.routers.privatebin.entrypoints=http
       - traefik.http.routers.privatebin.middlewares=https-redirect
-      - traefik.http.routers.privatebin-https.rule=Host(`bin.c0d3n4m3.net`)
+      - traefik.http.routers.privatebin-https.rule=Host(`bin.$DOMAIN`)
       - traefik.http.routers.privatebin-https.entrypoints=https
-      - traefik.http.services.privatebin.loadbalancer.server.port=8080
       - traefik.http.routers.privatebin-https.tls=true
       - traefik.http.routers.privatebin-https.service=privatebin
-      - traefik.http.routers.privatebin-https.tls.certresolver=letsencrypt
+      - traefik.http.routers.privatebin-https.tls.certresolver=$CERTRESOLVER
+      - traefik.http.services.privatebin.loadbalancer.server.port=8080
     networks:
       - internalapps  
     restart: unless-stopped
@@ -320,16 +318,16 @@ services:
       - 21027:21027/udp
     labels:
       - traefik.enable=true 
-      - traefik.http.routers.syncthing.rule=Host(`sync.c0d3n4m3.net`)
+      - traefik.http.routers.syncthing.rule=Host(`sync.$DOMAIN`)
       - traefik.http.routers.syncthing.entrypoints=http
       - traefik.http.routers.syncthing.middlewares=https-redirect
-      - traefik.http.routers.syncthing-https.rule=Host(`sync.c0d3n4m3.net`)
+      - traefik.http.routers.syncthing-https.rule=Host(`sync.$DOMAIN`)
       - traefik.http.routers.syncthing-https.entrypoints=https
       - traefik.http.routers.syncthing-https.middlewares=authelia@docker
-      - traefik.http.services.syncthing.loadbalancer.server.port=8384
       - traefik.http.routers.syncthing-https.tls=true
       - traefik.http.routers.syncthing-https.service=syncthing
-      - traefik.http.routers.syncthing-https.tls.certresolver=letsencrypt
+      - traefik.http.routers.syncthing-https.tls.certresolver=$CERTRESOLVER
+      - traefik.http.services.syncthing.loadbalancer.server.port=8384
     networks:
       - apps
       - internalapps  
@@ -342,55 +340,55 @@ networks:
     ipam:
       driver: default
       config:
-        - subnet: 172.98.184.64/27
-          gateway: 172.98.184.94
+        - subnet: $INTERNALAPPS_SUBNET
+          gateway: $INTERNALAPPS_GW
   apps:
     name: apps
     ipam:
       driver: default
       config:
-        - subnet: 172.98.184.0/28
-          gateway: 172.98.184.14
+        - subnet: $APPS_SUBNET
+          gateway: $APPS_GW
 
 volumes:
   syncthing-data:
     driver_opts:
       type: "nfs4"
-      o: "addr=10.98.184.199,nolock,soft,rw"
-      device: ":/mnt/pool0/docker/volumes/syncthing/"
+      o: "addr=$NAS_ADDR,$NAS_MOUNT_PARAMS"
+      device: "$NAS_PATH/syncthing/"
 
   heimdall:
     driver_opts:
       type: "nfs4"
-      o: "addr=10.98.184.199,nolock,soft,rw"
-      device: ":/mnt/pool0/docker/volumes/heimdall/"
+      o: "addr=$NAS_ADDR,$NAS_MOUNT_PARAMS"
+      device: "$NAS_PATH/heimdall/"
 
   shlink:
     driver_opts:
       type: "nfs4"
-      o: "addr=10.98.184.199,nolock,soft,rw"
-      device: ":/mnt/pool0/docker/volumes/shlink/"
+      o: "addr=$NAS_ADDR,$NAS_MOUNT_PARAMS"
+      device: "$NAS_PATH/shlink/"
 
   mysql:
     driver_opts:
       type: "nfs4"
-      o: "addr=10.98.184.199,nolock,soft,rw"
-      device: ":/mnt/pool0/docker/volumes/mysql/"
+      o: "addr=$NAS_ADDR,$NAS_MOUNT_PARAMS"
+      device: "$NAS_PATH/mysql/"
 
   cloudbeaver:
     driver_opts:
       type: "nfs4"
-      o: "addr=10.98.184.199,nolock,soft,rw"
-      device: ":/mnt/pool0/docker/volumes/cloudbeaver/"
+      o: "addr=$NAS_ADDR,$NAS_MOUNT_PARAMS"
+      device: "$NAS_PATH/cloudbeaver/"
 
   privatebin-data:
     driver_opts:
       type: "nfs4"
-      o: "addr=10.98.184.199,nolock,soft,rw"
-      device: ":/mnt/pool0/docker/volumes/privatebin"
+      o: "addr=$NAS_ADDR,$NAS_MOUNT_PARAMS"
+      device: "$NAS_PATH/privatebin"
 
   qbittorrent:
     driver_opts:
       type: "nfs4"
-      o: "addr=10.98.184.199,nolock,soft,rw"
-      device: ":/mnt/pool0/docker/volumes/qbittorrent"
+      o: "addr=$NAS_ADDR,$NAS_MOUNT_PARAMS"
+      device: "$NAS_PATH/qbittorrent"
