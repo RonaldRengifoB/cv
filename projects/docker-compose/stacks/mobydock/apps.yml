@@ -35,8 +35,6 @@ services:
       - PGID=$PGID
     labels:
     - traefik.enable=true 
-    - traefik.http.middlewares.https-redirect.redirectscheme.scheme=https
-    - traefik.http.middlewares.https-redirect.redirectscheme.permanent=true
     - traefik.http.routers.heimdall.rule=Host(`entertainment.c0d3n4m3.net`)
     - traefik.http.routers.heimdall.entrypoints=http
     - traefik.http.routers.heimdall.middlewares=https-redirect
@@ -66,8 +64,6 @@ services:
       - PGID=$PGID
     labels:
     - traefik.enable=true 
-    - traefik.http.middlewares.https-redirect.redirectscheme.scheme=https
-    - traefik.http.middlewares.https-redirect.redirectscheme.permanent=true
     - traefik.http.routers.dashy.rule=Host(`dash.c0d3n4m3.net`)
     - traefik.http.routers.dashy.entrypoints=http
     - traefik.http.routers.dashy.middlewares=https-redirect
@@ -96,8 +92,6 @@ services:
     labels:
       - traefik.enable=true 
       - traefik.http.middlewares.guacamole-prefix.addprefix.prefix=/guacamole
-      - traefik.http.middlewares.https-redirect.redirectscheme.scheme=https
-      - traefik.http.middlewares.https-redirect.redirectscheme.permanent=true
       - traefik.http.routers.guacamole.rule=Host(`remote.c0d3n4m3.net`)
       - traefik.http.routers.guacamole.entrypoints=http
       - traefik.http.routers.guacamole.middlewares=https-redirect
@@ -132,8 +126,6 @@ services:
     - DB_HOST=$DB_HOST
     labels:
       - traefik.enable=true 
-      - traefik.http.middlewares.https-redirect.redirectscheme.scheme=https
-      - traefik.http.middlewares.https-redirect.redirectscheme.permanent=true
       - traefik.http.routers.shlinkserver.rule=Host(`l.ronaldrengifo.com`)
       - traefik.http.routers.shlinkserver.entrypoints=http
       - traefik.http.routers.shlinkserver.middlewares=https-redirect
@@ -155,8 +147,6 @@ services:
     - SHLINK_SERVER_API_KEY=$SHLINK_SERVER_API_KEY
     labels:
       - traefik.enable=true 
-      - traefik.http.middlewares.https-redirect.redirectscheme.scheme=https
-      - traefik.http.middlewares.https-redirect.redirectscheme.permanent=true
       - traefik.http.routers.shlink.rule=Host(`link.c0d3n4m3.net`)
       - traefik.http.routers.shlink.entrypoints=http
       - traefik.http.routers.shlink.middlewares=https-redirect
@@ -231,8 +221,6 @@ services:
       - FOOTER=Ronald Rengifo © 2023
     labels:
       - traefik.enable=true 
-      - traefik.http.middlewares.https-redirect.redirectscheme.scheme=https
-      - traefik.http.middlewares.https-redirect.redirectscheme.permanent=true
       - traefik.http.routers.littlelink.rule=Host(`hello.ronaldrengifo.com`)
       - traefik.http.routers.littlelink.entrypoints=http
       - traefik.http.routers.littlelink.middlewares=https-redirect
@@ -268,8 +256,6 @@ services:
       - 6881:6881/udp
     labels:
       - traefik.enable=true 
-      - traefik.http.middlewares.https-redirect.redirectscheme.scheme=https
-      - traefik.http.middlewares.https-redirect.redirectscheme.permanent=true
       - traefik.http.routers.qbittorrent.rule=Host(`torrent.c0d3n4m3.net`)
       - traefik.http.routers.qbittorrent.entrypoints=http
       - traefik.http.routers.qbittorrent.middlewares=https-redirect
@@ -298,8 +284,6 @@ services:
           nocopy: true
     labels:
       - traefik.enable=true 
-      - traefik.http.middlewares.https-redirect.redirectscheme.scheme=https
-      - traefik.http.middlewares.https-redirect.redirectscheme.permanent=true
       - traefik.http.routers.privatebin.rule=Host(`bin.c0d3n4m3.net`)
       - traefik.http.routers.privatebin.entrypoints=http
       - traefik.http.routers.privatebin.middlewares=https-redirect
@@ -334,8 +318,6 @@ services:
       - 21027:21027/udp
     labels:
       - traefik.enable=true 
-      - traefik.http.middlewares.https-redirect.redirectscheme.scheme=https
-      - traefik.http.middlewares.https-redirect.redirectscheme.permanent=true
       - traefik.http.routers.syncthing.rule=Host(`sync.c0d3n4m3.net`)
       - traefik.http.routers.syncthing.entrypoints=http
       - traefik.http.routers.syncthing.middlewares=https-redirect

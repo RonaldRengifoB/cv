@@ -17,8 +17,6 @@ services:
     - 3000:3000
 #    labels:
 #    - traefik.enable=true 
-#    - traefik.http.middlewares.https-redirect.redirectscheme.scheme=https
-#    - traefik.http.middlewares.https-redirect.redirectscheme.permanent=true
 #    - traefik.http.routers.grafana.rule=Host(`grafana.c0d3n4m3.net`)
 #    - traefik.http.routers.grafana.entrypoints=http
 #    - traefik.http.routers.grafana.middlewares=https-redirect
@@ -45,8 +43,6 @@ services:
     - 9090:9090
 #    labels:
 #    - traefik.enable=true 
-#    - traefik.http.middlewares.https-redirect.redirectscheme.scheme=https
-#    - traefik.http.middlewares.https-redirect.redirectscheme.permanent=true
 #    - traefik.http.routers.prometheus.rule=Host(`prometheus.c0d3n4m3.net`)
 #    - traefik.http.routers.prometheus.entrypoints=http
 #    - traefik.http.routers.prometheus.middlewares=https-redirect
@@ -113,8 +109,6 @@ services:
     - 8086:8086
 #    labels:
 #    - traefik.enable=true 
-#    - traefik.http.middlewares.https-redirect.redirectscheme.scheme=https
-#    - traefik.http.middlewares.https-redirect.redirectscheme.permanent=true
 #    - traefik.http.routers.influxdb.rule=Host(`influxdb.c0d3n4m3.net`)
 #    - traefik.http.routers.influxdb.entrypoints=http
 #    - traefik.http.routers.influxdb.middlewares=https-redirect
@@ -175,8 +169,6 @@ services:
     - "3001:3001"
 #    labels:
 #    - traefik.enable=true 
-#    - traefik.http.middlewares.https-redirect.redirectscheme.scheme=https
-#    - traefik.http.middlewares.https-redirect.redirectscheme.permanent=true
 #    - traefik.http.routers.uptimekuma.rule=Host(`uptime.c0d3n4m3.net`)
 #    - traefik.http.routers.uptimekuma.entrypoints=http
 #    - traefik.http.routers.uptimekuma.middlewares=https-redirect

@@ -71,9 +71,12 @@ services:
 
 networks:
   apps:
-    external: true
-  internal:
-    external: true
+    name: apps
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.98.184.0/28
+          gateway: 172.98.184.14
 
 volumes:
   rustdesk:

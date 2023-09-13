@@ -1,0 +1,89 @@
+version: "3.7"
+services:
+  privoxyvpn:
+    image: binhex/arch-privoxyvpn
+    container_name: privoxyvpn
+    cap_add:
+      - NET_ADMIN
+    ports:
+      - 8118:8118   #Privoxy HTTP(s) proxy
+      - 9118:9118   #Microsocks SOCK5 proxy
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - UMASK=1000
+      - WEBUI_PORT=7070
+      - VPN_ENABLED=yes
+      - VPN_USER=6FsuTtZgwR2DjFnGwnZdEET8           
+      - VPN_PASS=NHYKdRujqXv5KgpThwXejrLD
+      - VPN_PROV=custom
+      - VPN_CLIENT=openvpn
+#      - VPN_OPTIONS=<additional openvpn cli options>
+#      - STRICT_PORT_FORWARD=yes                     
+      - ENABLE_SOCKS=yes
+      - SOCKS_USER=axl
+      - SOCKS_PASS=Tjg9jAFJYYs8rS5
+      - ENABLE_PRIVOXY=yes
+      - LAN_NETWORK=172.98.184.160/27, 172.98.184.128/27, 10.11.184.0/24
+      - NAME_SERVERS=1.1.1.1
+#     - VPN_INPUT_PORTS=<port number(s)>           
+#     - VPN_OUTPUT_PORTS=<port number(s)>           
+      - DEBUG=false
+    volumes:
+#      - /home/axl/docker/volumes/privoxyvpn:/config
+      - /etc/localtime:/etc/localtime:ro
+      - type: volume
+        source: privoxyvpn
+        target: /config
+        volume:
+          nocopy: true  
+    networks:
+      - entertainment  
+      - controller
+    restart: unless-stopped
+
+  tor-privoxy:
+    restart: always
+    image: dockage/tor-privoxy:latest
+    container_name: privoxytor
+    ports:
+      - "8119:8118" # Privoxy HTTP(s) proxy
+#      - "9050:9050" # Tor SOCKS5 proxy
+      - "9051:9051" # Tor control port
+    networks:
+      - controller
+
+  watchtower:
+    image: containrrr/watchtower
+    container_name: watchtower
+    environment:
+    - WATCHTOWER_NOTIFICATIONS=$WATCHTOWER_NOTIFICATIONS
+    - WATCHTOWER_NOTIFICATION_EMAIL_FROM=$WATCHTOWER_NOTIFICATION_EMAIL_FROM
+    - WATCHTOWER_NOTIFICATION_EMAIL_TO=$WATCHTOWER_NOTIFICATION_EMAIL_TO
+    - WATCHTOWER_NOTIFICATION_EMAIL_SERVER=$WATCHTOWER_NOTIFICATION_EMAIL_SERVER
+    - WATCHTOWER_NOTIFICATION_EMAIL_SERVER_PORT=$WATCHTOWER_NOTIFICATION_EMAIL_SERVER_PORT
+    - WATCHTOWER_NOTIFICATION_EMAIL_SERVER_USER=$WATCHTOWER_NOTIFICATION_EMAIL_SERVER_USER
+    - WATCHTOWER_NOTIFICATION_EMAIL_SERVER_PASSWORD=$WATCHTOWER_NOTIFICATION_EMAIL_SERVER_PASSWORD
+    - WATCHTOWER_NOTIFICATION_EMAIL_DELAY=$WATCHTOWER_NOTIFICATION_EMAIL_DELAY
+    - WATCHTOWER_CLEANUP=true
+    - WATCHTOWER_SCHEDULE=0 0 2 * * ?
+    volumes:
+    - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - apps  
+    restart: unless-stopped
+
+networks:
+  apps:
+    external: true
+  entertainment:
+    external: true
+  controllers:
+    external: true  
+
+volumes:
+  privoxyvpn:
+    driver_opts:
+      type: "nfs4"
+      o: "addr=10.98.184.199,nolock,soft,rw"
+      device: ":/mnt/pool0/docker/volumes/privoxyvpn/"  
