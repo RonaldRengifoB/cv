@@ -1,22 +1,22 @@
 version: "3.2"
 services:
   cloudflared:
-    container_name: cloudflared
+    container_name: $CLOUDFLARE_SERVICE_NAME
     image: cloudflare/cloudflared
     restart: unless-stopped
     command: tunnel run
     environment:
-      - TUNNEL_TOKEN=$TUNNEL_TOKEN
+      - TUNNEL_TOKEN=$CLOUDFLARE_TUNNEL_TOKEN
     networks:
       - controllers
   
   authelia:
     image: authelia/authelia:latest
-    container_name: authelia
+    container_name: $AUTHELIA_SERVICE_NAME
     ports:
       - 9959:9959
     depends_on:
-      - traefik      
+      - $TRAEFIK_SERVICE_NAME      
     environment:
       - TZ=$TZ
       - AUTHELIA_JWT_SECRET=$AUTHELIA_JWT_SECRET
@@ -26,21 +26,21 @@ services:
       - AUTHELIA_NOTIFIER_SMTP_PASSWORD=$AUTHELIA_NOTIFIER_SMTP_PASSWORD
     labels:
       - traefik.enable=true
-      - traefik.http.routers.authelia.rule=Host(`login.c0d3n4m3.net`)
-      - traefik.http.routers.authelia.entrypoints=http
-      - traefik.http.routers.authelia.middlewares=https-redirect
-      - traefik.http.routers.authelia-https.rule=Host(`login.c0d3n4m3.net`)      
-      - traefik.http.routers.authelia-https.entrypoints=https
-      - traefik.http.routers.authelia-https.tls=true
-      - traefik.http.routers.authelia-https.service=authelia
-      - traefik.http.routers.authelia-https.tls.certresolver=letsencrypt
-      - traefik.http.middlewares.authelia.forwardauth.address=http://authelia:9091/api/verify?rd=https://login.c0d3n4m3.net/
-      - traefik.http.middlewares.authelia.forwardauth.trustForwardHeader=true
-      - traefik.http.middlewares.authelia.forwardauth.authResponseHeaders=Remote-User, Remote-Groups, Remote-Name, Remote-Email
-      - traefik.http.middlewares.authelia-basic.forwardauth.address=http://authelia:9091/api/verify?auth=basic
-      - traefik.http.middlewares.authelia-basic.forwardauth.trustForwardHeader=true
-      - traefik.http.middlewares.authelia-basic.forwardauth.authResponseHeaders=Remote-User, Remote-Groups, Remote-Name, Remote-Email
-      - traefik.http.services.authelia.loadbalancer.server.port=9091  
+      - traefik.http.routers.$AUTHELIA_SERVICE_NAME.rule=Host(`$AUTHELIA_ADDR_NAME.$DOMAIN`)
+      - traefik.http.routers.$AUTHELIA_SERVICE_NAME.entrypoints=http
+      - traefik.http.routers.$AUTHELIA_SERVICE_NAME.middlewares=https-redirect
+      - traefik.http.routers.$AUTHELIA_SERVICE_NAME-https.rule=Host(`$AUTHELIA_ADDR_NAME.$DOMAIN`)      
+      - traefik.http.routers.$AUTHELIA_SERVICE_NAME-https.entrypoints=https
+      - traefik.http.routers.$AUTHELIA_SERVICE_NAME-https.tls=true
+      - traefik.http.routers.$AUTHELIA_SERVICE_NAME-https.service=$AUTHELIA_SERVICE_NAME
+      - traefik.http.routers.$AUTHELIA_SERVICE_NAME-https.tls.certresolver=$CERTRESOLVER
+      - traefik.http.middlewares.$AUTHELIA_SERVICE_NAME.forwardauth.address=http://$AUTHELIA_SERVICE_NAME:9091/api/verify?rd=https://$AUTHELIA_ADDR_NAME.$DOMAIN/
+      - traefik.http.middlewares.$AUTHELIA_SERVICE_NAME.forwardauth.trustForwardHeader=true
+      - traefik.http.middlewares.$AUTHELIA_SERVICE_NAME.forwardauth.authResponseHeaders=Remote-User, Remote-Groups, Remote-Name, Remote-Email
+      - traefik.http.middlewares.$AUTHELIA_SERVICE_NAME-basic.forwardauth.address=http://$AUTHELIA_SERVICE_NAME:9091/api/verify?auth=basic
+      - traefik.http.middlewares.$AUTHELIA_SERVICE_NAME-basic.forwardauth.trustForwardHeader=true
+      - traefik.http.middlewares.$AUTHELIA_SERVICE_NAME-basic.forwardauth.authResponseHeaders=Remote-User, Remote-Groups, Remote-Name, Remote-Email
+      - traefik.http.services.$AUTHELIA_SERVICE_NAME.loadbalancer.server.port=9091  
     volumes:
       - type: volume
         source: authelia
@@ -59,7 +59,7 @@ services:
 
   traefik:
     image: "traefik:latest"
-    container_name: "traefik"
+    container_name: "$TRAEFIK_SERVICE_NAME"
 # ports disabled because we are using cloudflare tunnel
 #    ports:
 #      - 80:80
@@ -103,10 +103,10 @@ services:
       - --entrypoints.rd9-tcp.address=:21119/tcp
       - --entrypoints.rd6-udp.address=:21116/udp
       # Setup letsEncrypt por DNS Validation
-      - --certificatesresolvers.letsencrypt.acme.dnschallenge=true
-      - --certificatesresolvers.letsencrypt.acme.dnschallenge.provider=cloudflare
-      - --certificatesresolvers.letsencrypt.acme.storage=acme.json
-      - --certificatesresolvers.letsencrypt.acme.email=$ACME_EMAIL
+      - --certificatesresolvers.$CERTRESOLVER.acme.dnschallenge=true
+      - --certificatesresolvers.$CERTRESOLVER.acme.dnschallenge.provider=cloudflare
+      - --certificatesresolvers.$CERTRESOLVER.acme.storage=acme.json
+      - --certificatesresolvers.$CERTRESOLVER.acme.email=$CERTRESOLVER_ACME_EMAIL
       # Avoid validation of self-signed certificates in containers
       - --serverstransport.insecureskipverify=true
     labels:
@@ -118,18 +118,18 @@ services:
       - traefik.http.middlewares.https-redirect.redirectscheme.permanent=true
       - traefik.http.middlewares.sslheader.headers.customrequestheaders.X-Forwarded-Proto=https
       # Dashboard HTTP here
-      - traefik.http.routers.traefik.rule=Host(`traefik.c0d3n4m3.net`)
-      - traefik.http.routers.traefik.entrypoints=http
-      - traefik.http.routers.traefik.middlewares=https-redirect
+      - traefik.http.routers.$TRAEFIK_SERVICE_NAME.rule=Host(`$TRAEFIK_ADDR_NAME.$DOMAIN`)
+      - traefik.http.routers.$TRAEFIK_SERVICE_NAME.entrypoints=http
+      - traefik.http.routers.$TRAEFIK_SERVICE_NAME.middlewares=https-redirect
       # Dashboard HTTPS here
-      - traefik.http.routers.traefik-https.rule=Host(`traefik.c0d3n4m3.net`)
-      - traefik.http.routers.traefik-https.entrypoints=https
-      - traefik.http.routers.traefik-https.middlewares=authelia@docker
-      - traefik.http.routers.traefik-https.tls=true
+      - traefik.http.routers.$TRAEFIK_SERVICE_NAME-https.rule=Host(`$TRAEFIK_ADDR_NAME.$DOMAIN`)
+      - traefik.http.routers.$TRAEFIK_SERVICE_NAME-https.entrypoints=https
+      - traefik.http.routers.$TRAEFIK_SERVICE_NAME-https.middlewares=$AUTHELIA_SERVICE_NAME@docker
+      - traefik.http.routers.$TRAEFIK_SERVICE_NAME-https.tls=true
       # Use the special Traefik service api@internal with the web UI/Dashboard
-      - traefik.http.routers.traefik-https.service=api@internal
+      - traefik.http.routers.$TRAEFIK_SERVICE_NAME-https.service=api@internal
       # Use the Let's Encrypt resolver created below
-      - traefik.http.routers.traefik-https.tls.certresolver=letsencrypt
+      - traefik.http.routers.$TRAEFIK_SERVICE_NAME-https.tls.certresolver=$CERTRESOLVER
     volumes:
       - /mnt/docker/ymls/:/data/traefik-fileprovider.yml #yml with routes for external servers
       - /mnt/docker/certs/:/data/letsencrypt/acme.json
@@ -146,25 +146,25 @@ networks:
     ipam:
       driver: default
       config:
-        - subnet: 172.98.184.64/27
-          gateway: 172.98.184.94
+        - subnet: $INTERNALAPPS_SUBNET
+          gateway: $INTERNALAPPS_GW
   controllers:
     name: controllers
     ipam:
       driver: default
       config:
-        - subnet: 172.98.184.16/28
-          gateway: 172.98.184.30
+        - subnet: $CONTROLLERS_SUBNET
+          gateway: $CONTROLLERS_GW
 
 volumes:
   authelia:
     driver_opts:
       type: "nfs4"
-      o: "addr=10.98.184.199,nolock,soft,rw"
-      device: ":/mnt/pool0/docker/volumes/authelia/"
+      o: "addr=$NAS_ADDR,$NAS_MOUNT"
+      device: "$NAS_PATH/authelia/"
 
   authelia-secrets:
     driver_opts:
       type: "nfs4"
-      o: "addr=10.98.184.199,nolock,soft,ro"
-      device: ":/mnt/pool0/docker/volumes/authelia/secrets/"
+      o: "addr=$NAS_ADDR,nolock,soft,ro"
+      device: "$NAS_PATH/authelia/secrets/"
