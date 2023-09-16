@@ -1,29 +1,32 @@
 version: "3.2"
 services:
-  cloudbeaver:
-    image: dbeaver/cloudbeaver:latest
-    container_name: cloudbeaver
+  dashy:
+    image: lissy93/dashy:latest
+    container_name: dashy
+    environment:
+      - PUID=$PUID
+      - PGID=$PGID
     labels:
     - traefik.enable=true 
-    - traefik.http.routers.cloudbeaver.rule=Host(`sql.$DOMAIN`)
-    - traefik.http.routers.cloudbeaver.entrypoints=http
-    - traefik.http.routers.cloudbeaver.middlewares=https-redirect
-    - traefik.http.routers.cloudbeaver-https.rule=Host(`sql.$DOMAIN`)
-    - traefik.http.routers.cloudbeaver-https.entrypoints=https
-    - traefik.http.routers.cloudbeaver-https.middlewares=authelia@docker
-    - traefik.http.routers.cloudbeaver-https.tls=true
-    - traefik.http.routers.cloudbeaver-https.service=cloudbeaver
-    - traefik.http.routers.cloudbeaver-https.tls.certresolver=$CERTRESOLVER
-    - traefik.http.services.cloudbeaver.loadbalancer.server.port=8978
+    - traefik.http.routers.dashy.rule=Host(`$DOMAIN`, `dash.$DOMAIN`, `www.$DOMAIN`)
+    - traefik.http.routers.dashy.entrypoints=http
+    - traefik.http.routers.dashy.middlewares=https-redirect
+    - traefik.http.routers.dashy-https.rule=Host(`$DOMAIN`, `dash.$DOMAIN`, `www.$DOMAIN`)
+    - traefik.http.routers.dashy-https.entrypoints=https
+    - traefik.http.routers.dashy-https.middlewares=authelia@docker
+    - traefik.http.routers.dashy-https.middlewares=dashy-apexredirect@docker
+    - traefik.http.routers.dashy-https.tls=true
+    - traefik.http.routers.dashy-https.service=dashy
+    - traefik.http.routers.dashy-https.tls.certresolver=$CERTRESOLVER
+    - traefik.http.middlewares.dashy-apexredirect.redirectRegex.regex=^https:\/\/(?:www\.)?$DOMAIN/(.*)
+    - traefik.http.middlewares.dashy-apexredirect.redirectRegex.replacement=https://dash.$DOMAIN/$${1}
+    - traefik.http.middlewares.dashy-apexredirect.redirectRegex.permanent=true
+    - traefik.http.services.dashy.loadbalancer.server.port=80
     volumes:
-      - type: volume
-        source: cloudbeaver
-        target: /opt/cloudbeaver/workspace 
-        volume:
-          nocopy: true  
+      - /mnt/docker/ymls/dashy-config.yml:/app/public/conf.yml
     restart: unless-stopped
     networks:
-      - internalapps
+      - internalapps 
 
   heimdall:
     image: lscr.io/linuxserver/heimdall:latest
@@ -53,30 +56,46 @@ services:
     restart: unless-stopped
     networks:
       - internalapps 
-    
-  dashy:
-    image: lissy93/dashy:latest
-    container_name: dashy
-    environment:
-      - PUID=$PUID
-      - PGID=$PGID
+
+  mysql:
+    image: mariadb:latest
+    container_name: mysql
+    labels:
+      - com.centurylinklabs.watchtower.monitor-only="true"
+    volumes:
+      - type: volume
+        source: mysql
+        target: /var/lib/mysql
+        volume:
+          nocopy: true  
+    networks:
+      - internalapps
+    restart: unless-stopped     
+
+  cloudbeaver:
+    image: dbeaver/cloudbeaver:latest
+    container_name: cloudbeaver
     labels:
     - traefik.enable=true 
-    - traefik.http.routers.dashy.rule=Host(`dash.$DOMAIN`)
-    - traefik.http.routers.dashy.entrypoints=http
-    - traefik.http.routers.dashy.middlewares=https-redirect
-    - traefik.http.routers.dashy-https.rule=Host(`dash.$DOMAIN`)
-    - traefik.http.routers.dashy-https.entrypoints=https
-    - traefik.http.routers.dashy-https.middlewares=authelia@docker
-    - traefik.http.routers.dashy-https.tls=true
-    - traefik.http.routers.dashy-https.service=dashy
-    - traefik.http.routers.dashy-https.tls.certresolver=$CERTRESOLVER
-    - traefik.http.services.dashy.loadbalancer.server.port=80
+    - traefik.http.routers.cloudbeaver.rule=Host(`sql.$DOMAIN`)
+    - traefik.http.routers.cloudbeaver.entrypoints=http
+    - traefik.http.routers.cloudbeaver.middlewares=https-redirect
+    - traefik.http.routers.cloudbeaver-https.rule=Host(`sql.$DOMAIN`)
+    - traefik.http.routers.cloudbeaver-https.entrypoints=https
+    - traefik.http.routers.cloudbeaver-https.middlewares=authelia@docker
+    - traefik.http.routers.cloudbeaver-https.tls=true
+    - traefik.http.routers.cloudbeaver-https.service=cloudbeaver
+    - traefik.http.routers.cloudbeaver-https.tls.certresolver=$CERTRESOLVER
+    - traefik.http.services.cloudbeaver.loadbalancer.server.port=8978
     volumes:
-      - /mnt/docker/ymls/dashy-config.yml:/app/public/conf.yml
+      - type: volume
+        source: cloudbeaver
+        target: /opt/cloudbeaver/workspace 
+        volume:
+          nocopy: true  
     restart: unless-stopped
     networks:
-      - internalapps 
+      - internalapps
 
   guacamole:
     image: guacamole/guacamole
@@ -165,21 +184,6 @@ services:
     networks:
       - internalapps
 
-  mysql:
-    image: mariadb:latest
-    container_name: mysql
-    labels:
-      - com.centurylinklabs.watchtower.monitor-only="true"
-    volumes:
-      - type: volume
-        source: mysql
-        target: /var/lib/mysql
-        volume:
-          nocopy: true  
-    networks:
-      - internalapps
-    restart: unless-stopped
-
   littlelink-server:
     image: timothystewart6/littlelink-server:latest
     container_name: littlelink-server
@@ -219,14 +223,19 @@ services:
       - FOOTER=Ronald Rengifo © 2023
     labels:
       - traefik.enable=true 
-      - traefik.http.routers.littlelink.rule=Host(`hello.$DOMAIN_FORMAL`)
+      - traefik.http.routers.littlelink.rule=Host(`$DOMAIN_FORMAL`, `www.$DOMAIN_FORMAL`, `hello.$DOMAIN_FORMAL`)
       - traefik.http.routers.littlelink.entrypoints=http
       - traefik.http.routers.littlelink.middlewares=https-redirect
-      - traefik.http.routers.littlelink-https.rule=Host(`hello.$DOMAIN_FORMAL`)
+      - traefik.http.routers.littlelink-https.rule=Host(`$DOMAIN_FORMAL`, `www.$DOMAIN_FORMAL`, `hello.$DOMAIN_FORMAL`)
       - traefik.http.routers.littlelink-https.entrypoints=https
+      - traefik.http.routers.littlelink-https.middlewares=ll-apexredirect@docker
       - traefik.http.routers.littlelink-https.tls=true
       - traefik.http.routers.littlelink-https.tls.certresolver=$CERTRESOLVER
       - traefik.http.routers.littlelink-https.service=littlelink
+      - traefik.http.middlewares.ll-apexredirect.redirectRegex.regex=^https:\/\/(?:www\.)?$DOMAIN_FORMAL/(.*)
+      - traefik.http.middlewares.ll-apexredirect.redirectRegex.replacement=https://hello.$DOMAIN_FORMAL/$${1}
+      - traefik.http.middlewares.llapexredirect.redirectRegex.permanent=true
+
       - traefik.http.services.littlelink.loadbalancer.server.port=3000
     restart: unless-stopped
     networks:
