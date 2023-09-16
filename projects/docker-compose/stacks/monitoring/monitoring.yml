@@ -18,10 +18,9 @@ services:
 #    labels:
 #    - traefik.enable=true 
 #    - traefik.http.routers.grafana.rule=Host(`grafana.c0d3n4m3.net`)
-#    - traefik.http.routers.grafana.entrypoints=http
-#    - traefik.http.routers.grafana.middlewares=https-redirect
+#    - traefik.http.routers.grafana.entrypoints=web
 #    - traefik.http.routers.grafana-https.rule=Host(`grafana.c0d3n4m3.net`)
-#    - traefik.http.routers.grafana-https.entrypoints=https
+#    - traefik.http.routers.grafana-https.entrypoints=webs
 #    - traefik.http.routers.grafana-https.tls=true
 #    - traefik.http.routers.grafana-https.service=grafana
 #    - traefik.http.routers.grafana-https.tls.certresolver=letsencrypt
@@ -44,10 +43,9 @@ services:
 #    labels:
 #    - traefik.enable=true 
 #    - traefik.http.routers.prometheus.rule=Host(`prometheus.c0d3n4m3.net`)
-#    - traefik.http.routers.prometheus.entrypoints=http
-#    - traefik.http.routers.prometheus.middlewares=https-redirect
+#    - traefik.http.routers.prometheus.entrypoints=web
 #    - traefik.http.routers.prometheus-https.rule=Host(`prometheus.c0d3n4m3.net`)
-#    - traefik.http.routers.prometheus-https.entrypoints=https
+#    - traefik.http.routers.prometheus-https.entrypoints=webs
 #    - traefik.http.routers.prometheus-https.tls=true
 #    - traefik.http.routers.prometheus-https.service=prometheus
 #    - traefik.http.routers.prometheus-https.tls.certresolver=letsencrypt
@@ -110,10 +108,9 @@ services:
 #    labels:
 #    - traefik.enable=true 
 #    - traefik.http.routers.influxdb.rule=Host(`influxdb.c0d3n4m3.net`)
-#    - traefik.http.routers.influxdb.entrypoints=http
-#    - traefik.http.routers.influxdb.middlewares=https-redirect
+#    - traefik.http.routers.influxdb.entrypoints=web
 #    - traefik.http.routers.influxdb-https.rule=Host(`influxdb.c0d3n4m3.net`)
-#    - traefik.http.routers.influxdb-https.entrypoints=https
+#    - traefik.http.routers.influxdb-https.entrypoints=webs
 #    - traefik.http.routers.influxdb-https.tls=true
 #    - traefik.http.routers.influxdb-https.service=influxdb
 #    - traefik.http.routers.influxdb-https.tls.certresolver=letsencrypt
@@ -170,10 +167,9 @@ services:
 #    labels:
 #    - traefik.enable=true 
 #    - traefik.http.routers.uptimekuma.rule=Host(`uptime.c0d3n4m3.net`)
-#    - traefik.http.routers.uptimekuma.entrypoints=http
-#    - traefik.http.routers.uptimekuma.middlewares=https-redirect
+#    - traefik.http.routers.uptimekuma.entrypoints=web
 #    - traefik.http.routers.uptimekuma-https.rule=Host(`uptime.c0d3n4m3.net`)
-#    - traefik.http.routers.uptimekuma-https.entrypoints=https
+#    - traefik.http.routers.uptimekuma-https.entrypoints=webs
 #    - traefik.http.routers.uptimekuma-https.tls=true
 #    - traefik.http.routers.uptimekuma-https.service=uptimekuma
 #    - traefik.http.routers.uptimekuma-https.tls.certresolver=letsencrypt

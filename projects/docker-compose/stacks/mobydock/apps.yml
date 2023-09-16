@@ -9,10 +9,9 @@ services:
     labels:
     - traefik.enable=true 
     - traefik.http.routers.dashy.rule=Host(`$DOMAIN`, `dash.$DOMAIN`, `www.$DOMAIN`)
-    - traefik.http.routers.dashy.entrypoints=http
-    - traefik.http.routers.dashy.middlewares=https-redirect
+    - traefik.http.routers.dashy.entrypoints=web
     - traefik.http.routers.dashy-https.rule=Host(`$DOMAIN`, `dash.$DOMAIN`, `www.$DOMAIN`)
-    - traefik.http.routers.dashy-https.entrypoints=https
+    - traefik.http.routers.dashy-https.entrypoints=webs
     - traefik.http.routers.dashy-https.middlewares=authelia@docker
     - traefik.http.routers.dashy-https.middlewares=dashy-apexredirect@docker
     - traefik.http.routers.dashy-https.tls=true
@@ -37,10 +36,9 @@ services:
     labels:
     - traefik.enable=true 
     - traefik.http.routers.heimdall.rule=Host(`entertainment.$DOMAIN`)
-    - traefik.http.routers.heimdall.entrypoints=http
-    - traefik.http.routers.heimdall.middlewares=https-redirect
+    - traefik.http.routers.heimdall.entrypoints=web
     - traefik.http.routers.heimdall-https.rule=Host(`entertainment.$DOMAIN`)
-    - traefik.http.routers.heimdall-https.entrypoints=https
+    - traefik.http.routers.heimdall-https.entrypoints=webs
     - traefik.http.routers.heimdall-https.middlewares=authelia@docker
     - traefik.http.routers.heimdall-https.tls=true
     - traefik.http.routers.heimdall-https.service=heimdall
@@ -78,10 +76,9 @@ services:
     labels:
     - traefik.enable=true 
     - traefik.http.routers.cloudbeaver.rule=Host(`sql.$DOMAIN`)
-    - traefik.http.routers.cloudbeaver.entrypoints=http
-    - traefik.http.routers.cloudbeaver.middlewares=https-redirect
+    - traefik.http.routers.cloudbeaver.entrypoints=web
     - traefik.http.routers.cloudbeaver-https.rule=Host(`sql.$DOMAIN`)
-    - traefik.http.routers.cloudbeaver-https.entrypoints=https
+    - traefik.http.routers.cloudbeaver-https.entrypoints=webs
     - traefik.http.routers.cloudbeaver-https.middlewares=authelia@docker
     - traefik.http.routers.cloudbeaver-https.tls=true
     - traefik.http.routers.cloudbeaver-https.service=cloudbeaver
@@ -109,10 +106,9 @@ services:
     labels:
       - traefik.enable=true 
       - traefik.http.routers.guacamole.rule=Host(`remote.$DOMAIN`)
-      - traefik.http.routers.guacamole.entrypoints=http
-      - traefik.http.routers.guacamole.middlewares=https-redirect
+      - traefik.http.routers.guacamole.entrypoints=web
       - traefik.http.routers.guacamole-https.rule=Host(`remote.$DOMAIN`)
-      - traefik.http.routers.guacamole-https.entrypoints=https
+      - traefik.http.routers.guacamole-https.entrypoints=webs
       - traefik.http.routers.guacamole-https.middlewares=guacamole-prefix
       - traefik.http.routers.guacamole-https.tls=true
       - traefik.http.routers.guacamole-https.service=guacamole
@@ -144,10 +140,9 @@ services:
     labels:
       - traefik.enable=true 
       - traefik.http.routers.shlinkserver.rule=Host(`l.$DOMAIN_FORMAL`)
-      - traefik.http.routers.shlinkserver.entrypoints=http
-      - traefik.http.routers.shlinkserver.middlewares=https-redirect
+      - traefik.http.routers.shlinkserver.entrypoints=web
       - traefik.http.routers.shlinkserver-https.rule=Host(`l.$DOMAIN_FORMAL`)
-      - traefik.http.routers.shlinkserver-https.entrypoints=https
+      - traefik.http.routers.shlinkserver-https.entrypoints=webs
       - traefik.http.routers.shlinkserver-https.tls=true
       - traefik.http.routers.shlinkserver-https.service=shlinkserver
       - traefik.http.routers.shlinkserver-https.tls.certresolver=$CERTRESOLVER
@@ -165,10 +160,9 @@ services:
     labels:
       - traefik.enable=true 
       - traefik.http.routers.shlink.rule=Host(`link.$DOMAIN`)
-      - traefik.http.routers.shlink.entrypoints=http
-      - traefik.http.routers.shlink.middlewares=https-redirect
+      - traefik.http.routers.shlink.entrypoints=web
       - traefik.http.routers.shlink-https.rule=Host(`link.$DOMAIN`)
-      - traefik.http.routers.shlink-https.entrypoints=https
+      - traefik.http.routers.shlink-https.entrypoints=webs
       - traefik.http.routers.shlink-https.middlewares=authelia@docker
       - traefik.http.routers.shlink-https.tls=true
       - traefik.http.routers.shlink-https.service=shlink
@@ -224,10 +218,9 @@ services:
     labels:
       - traefik.enable=true 
       - traefik.http.routers.littlelink.rule=Host(`$DOMAIN_FORMAL`, `www.$DOMAIN_FORMAL`, `hello.$DOMAIN_FORMAL`)
-      - traefik.http.routers.littlelink.entrypoints=http
-      - traefik.http.routers.littlelink.middlewares=https-redirect
+      - traefik.http.routers.littlelink.entrypoints=web
       - traefik.http.routers.littlelink-https.rule=Host(`$DOMAIN_FORMAL`, `www.$DOMAIN_FORMAL`, `hello.$DOMAIN_FORMAL`)
-      - traefik.http.routers.littlelink-https.entrypoints=https
+      - traefik.http.routers.littlelink-https.entrypoints=webs
       - traefik.http.routers.littlelink-https.middlewares=ll-apexredirect@docker
       - traefik.http.routers.littlelink-https.tls=true
       - traefik.http.routers.littlelink-https.tls.certresolver=$CERTRESOLVER
@@ -264,10 +257,9 @@ services:
     labels:
       - traefik.enable=true 
       - traefik.http.routers.qbittorrent.rule=Host(`torrent.$DOMAIN`)
-      - traefik.http.routers.qbittorrent.entrypoints=http
-      - traefik.http.routers.qbittorrent.middlewares=https-redirect
+      - traefik.http.routers.qbittorrent.entrypoints=web
       - traefik.http.routers.qbittorrent-https.rule=Host(`torrent.$DOMAIN`)
-      - traefik.http.routers.qbittorrent-https.entrypoints=https
+      - traefik.http.routers.qbittorrent-https.entrypoints=webs
 #check connectivity with external apps
 #      - traefik.http.routers.qbittorrent-https.middlewares=authelia@docker 
       - traefik.http.routers.qbittorrent-https.tls=true
@@ -294,10 +286,9 @@ services:
     labels:
       - traefik.enable=true 
       - traefik.http.routers.privatebin.rule=Host(`bin.$DOMAIN`)
-      - traefik.http.routers.privatebin.entrypoints=http
-      - traefik.http.routers.privatebin.middlewares=https-redirect
+      - traefik.http.routers.privatebin.entrypoints=web
       - traefik.http.routers.privatebin-https.rule=Host(`bin.$DOMAIN`)
-      - traefik.http.routers.privatebin-https.entrypoints=https
+      - traefik.http.routers.privatebin-https.entrypoints=webs
       - traefik.http.routers.privatebin-https.tls=true
       - traefik.http.routers.privatebin-https.service=privatebin
       - traefik.http.routers.privatebin-https.tls.certresolver=$CERTRESOLVER
@@ -328,10 +319,9 @@ services:
     labels:
       - traefik.enable=true 
       - traefik.http.routers.syncthing.rule=Host(`sync.$DOMAIN`)
-      - traefik.http.routers.syncthing.entrypoints=http
-      - traefik.http.routers.syncthing.middlewares=https-redirect
+      - traefik.http.routers.syncthing.entrypoints=web
       - traefik.http.routers.syncthing-https.rule=Host(`sync.$DOMAIN`)
-      - traefik.http.routers.syncthing-https.entrypoints=https
+      - traefik.http.routers.syncthing-https.entrypoints=webs
       - traefik.http.routers.syncthing-https.middlewares=authelia@docker
       - traefik.http.routers.syncthing-https.tls=true
       - traefik.http.routers.syncthing-https.service=syncthing

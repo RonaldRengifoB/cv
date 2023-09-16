@@ -27,10 +27,9 @@ services:
     labels:
       - traefik.enable=true
       - traefik.http.routers.$AUTHELIA_SERVICE_NAME.rule=Host(`$AUTHELIA_ADDR_NAME.$DOMAIN`)
-      - traefik.http.routers.$AUTHELIA_SERVICE_NAME.entrypoints=http
-      - traefik.http.routers.$AUTHELIA_SERVICE_NAME.middlewares=https-redirect
+      - traefik.http.routers.$AUTHELIA_SERVICE_NAME.entrypoints=web
       - traefik.http.routers.$AUTHELIA_SERVICE_NAME-https.rule=Host(`$AUTHELIA_ADDR_NAME.$DOMAIN`)      
-      - traefik.http.routers.$AUTHELIA_SERVICE_NAME-https.entrypoints=https
+      - traefik.http.routers.$AUTHELIA_SERVICE_NAME-https.entrypoints=webs
       - traefik.http.routers.$AUTHELIA_SERVICE_NAME-https.tls=true
       - traefik.http.routers.$AUTHELIA_SERVICE_NAME-https.service=$AUTHELIA_SERVICE_NAME
       - traefik.http.routers.$AUTHELIA_SERVICE_NAME-https.tls.certresolver=$CERTRESOLVER
@@ -92,16 +91,19 @@ services:
       - --metrics.prometheus=true
       - --metrics.prometheus.buckets=0.1,0.3,1.2,5.0
       # Create an entrypoint "http" listening on address 80
-      - --entrypoints.http.address=:80
+      - --entrypoints.web.address=:80
+      - --entrypoints.web.http.redirections.entryPoint.to=webs
+      - --entrypoints.web.http.redirections.entryPoint.scheme=https
+      - --entrypoints.web.http.redirections.entrypoint.permanent=true
       # Create an entrypoint "https" listening on address 443
-      - --entrypoints.https.address=:443
+      - --entrypoints.webs.address=:443
       # Entry point for RustDesk server
-      - --entrypoints.rd5-tcp.address=:21115/tcp
-      - --entrypoints.rd6-tcp.address=:21116/tcp
-      - --entrypoints.rd7-tcp.address=:21117/tcp
-      - --entrypoints.rd8-tcp.address=:21118/tcp
-      - --entrypoints.rd9-tcp.address=:21119/tcp
-      - --entrypoints.rd6-udp.address=:21116/udp
+      #- --entrypoints.rd5-tcp.address=:21115/tcp
+      #- --entrypoints.rd6-tcp.address=:21116/tcp
+      #- --entrypoints.rd7-tcp.address=:21117/tcp
+      #- --entrypoints.rd8-tcp.address=:21118/tcp
+      #- --entrypoints.rd9-tcp.address=:21119/tcp
+      #- --entrypoints.rd6-udp.address=:21116/udp
       # Setup letsEncrypt por DNS Validation
       - --certificatesresolvers.$CERTRESOLVER.acme.dnschallenge=true
       - --certificatesresolvers.$CERTRESOLVER.acme.dnschallenge.provider=cloudflare
@@ -112,18 +114,13 @@ services:
     labels:
       # Enable Traefik for this service, to make it available in the public network
       - traefik.enable=true 
-      # https-redirect middleware to redirect HTTP to HTTPS
-      # It can be re-used by other stacks in other Docker Compose files
-      - traefik.http.middlewares.https-redirect.redirectscheme.scheme=https
-      - traefik.http.middlewares.https-redirect.redirectscheme.permanent=true
       - traefik.http.middlewares.sslheader.headers.customrequestheaders.X-Forwarded-Proto=https
       # Dashboard HTTP here
       - traefik.http.routers.$TRAEFIK_SERVICE_NAME.rule=Host(`$TRAEFIK_ADDR_NAME.$DOMAIN`)
-      - traefik.http.routers.$TRAEFIK_SERVICE_NAME.entrypoints=http
-      - traefik.http.routers.$TRAEFIK_SERVICE_NAME.middlewares=https-redirect
+      - traefik.http.routers.$TRAEFIK_SERVICE_NAME.entrypoints=web
       # Dashboard HTTPS here
       - traefik.http.routers.$TRAEFIK_SERVICE_NAME-https.rule=Host(`$TRAEFIK_ADDR_NAME.$DOMAIN`)
-      - traefik.http.routers.$TRAEFIK_SERVICE_NAME-https.entrypoints=https
+      - traefik.http.routers.$TRAEFIK_SERVICE_NAME-https.entrypoints=webs
       - traefik.http.routers.$TRAEFIK_SERVICE_NAME-https.middlewares=$AUTHELIA_SERVICE_NAME@docker
       - traefik.http.routers.$TRAEFIK_SERVICE_NAME-https.tls=true
       # Use the special Traefik service api@internal with the web UI/Dashboard

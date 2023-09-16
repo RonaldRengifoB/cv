@@ -7,10 +7,9 @@ services:
     labels:
     - traefik.enable=true 
     - traefik.http.routers.$PORTAINER_SERVICE_NAME.rule=Host(`$PORTAINER_ADDR_NAME.$DOMAIN`)
-    - traefik.http.routers.$PORTAINER_SERVICE_NAME.entrypoints=http
-    - traefik.http.routers.$PORTAINER_SERVICE_NAME.middlewares=https-redirect
+    - traefik.http.routers.$PORTAINER_SERVICE_NAME.entrypoints=web
     - traefik.http.routers.$PORTAINER_SERVICE_NAME-https.rule=Host(`$PORTAINER_ADDR_NAME.$DOMAIN`)
-    - traefik.http.routers.$PORTAINER_SERVICE_NAME-https.entrypoints=https
+    - traefik.http.routers.$PORTAINER_SERVICE_NAME-https.entrypoints=webs
     - traefik.http.routers.$PORTAINER_SERVICE_NAME-https.tls=true
     - traefik.http.routers.$PORTAINER_SERVICE_NAME-https.service=$PORTAINER_SERVICE_NAME
     - traefik.http.routers.$PORTAINER_SERVICE_NAME-https.tls.certresolver=$CERTRESOLVER
