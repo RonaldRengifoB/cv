@@ -109,6 +109,7 @@ services:
       - traefik.http.routers.$GUACAMOLE_SERVICE_NAME.entrypoints=web
       - traefik.http.routers.$GUACAMOLE_SERVICE_NAME-https.rule=Host(`$GUACAMOLE_ADDR_NAME.$DOMAIN`)
       - traefik.http.routers.$GUACAMOLE_SERVICE_NAME-https.entrypoints=webs
+      - traefik.http.routers.$GUACAMOLE_SERVICE_NAME-https.middlewares=$AUTHELIA_SERVICE_NAME@docker
       - traefik.http.routers.$GUACAMOLE_SERVICE_NAME-https.middlewares=$GUACAMOLE_SERVICE_NAME-prefix
       - traefik.http.routers.$GUACAMOLE_SERVICE_NAME-https.tls=true
       - traefik.http.routers.$GUACAMOLE_SERVICE_NAME-https.service=$GUACAMOLE_SERVICE_NAME
@@ -159,15 +160,15 @@ services:
     - SHLINK_SERVER_API_KEY=$SHLINK_DAEMON_API_KEY
     labels:
       - traefik.enable=true 
-      - traefik.http.routers.SHLINK_SERVICE_NAME.rule=Host(`$SHLINK_ADDR_NAME.$DOMAIN`)
-      - traefik.http.routers.SHLINK_SERVICE_NAME.entrypoints=web
-      - traefik.http.routers.SHLINK_SERVICE_NAME-https.rule=Host(`$SHLINK_ADDR_NAME.$DOMAIN`)
-      - traefik.http.routers.SHLINK_SERVICE_NAME-https.entrypoints=webs
-      - traefik.http.routers.SHLINK_SERVICE_NAME-https.middlewares=$AUTHELIA_SERVICE_NAME@docker
-      - traefik.http.routers.SHLINK_SERVICE_NAME-https.tls=true
-      - traefik.http.routers.SHLINK_SERVICE_NAME-https.service=SHLINK_SERVICE_NAME
-      - traefik.http.routers.SHLINK_SERVICE_NAME-https.tls.certresolver=$CERTRESOLVER
-      - traefik.http.services.SHLINK_SERVICE_NAME.loadbalancer.server.port=80
+      - traefik.http.routers.$SHLINK_SERVICE_NAME.rule=Host(`$SHLINK_ADDR_NAME.$DOMAIN`)
+      - traefik.http.routers.$SHLINK_SERVICE_NAME.entrypoints=web
+      - traefik.http.routers.$SHLINK_SERVICE_NAME-https.rule=Host(`$SHLINK_ADDR_NAME.$DOMAIN`)
+      - traefik.http.routers.$SHLINK_SERVICE_NAME-https.entrypoints=webs
+      - traefik.http.routers.$SHLINK_SERVICE_NAME-https.middlewares=$AUTHELIA_SERVICE_NAME@docker
+      - traefik.http.routers.$SHLINK_SERVICE_NAME-https.tls=true
+      - traefik.http.routers.$SHLINK_SERVICE_NAME-https.service=$SHLINK_SERVICE_NAME
+      - traefik.http.routers.$SHLINK_SERVICE_NAME-https.tls.certresolver=$CERTRESOLVER
+      - traefik.http.services.$SHLINK_SERVICE_NAME.loadbalancer.server.port=80
     volumes:
       - type: volume
         source: shlink
@@ -178,7 +179,7 @@ services:
     networks:
       - internalapps
 
-  littlelink-server:
+  littlelink:
     image: timothystewart6/littlelink-server:latest
     container_name: $LITTLELINK_SERVICE_NAME
     environment:
@@ -228,8 +229,7 @@ services:
       - traefik.http.middlewares.$LITTLELINK_SERVICE_NAME-apexredirect.redirectRegex.regex=^https:\/\/(?:www\.)?$DOMAIN_FORMAL/(.*)
       - traefik.http.middlewares.$LITTLELINK_SERVICE_NAME-apexredirect.redirectRegex.replacement=https://$LITTLELINK_ADDR_NAME.$DOMAIN_FORMAL/$${1}
       - traefik.http.middlewares.$LITTLELINK_SERVICE_NAME-apexredirect.redirectRegex.permanent=true
-
-      - traefik.http.services.LITTLELINK_SERVICE_NAME.loadbalancer.server.port=3000
+      - traefik.http.services.$LITTLELINK_SERVICE_NAME.loadbalancer.server.port=3000
     restart: unless-stopped
     networks:
       - internalapps

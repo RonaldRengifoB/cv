@@ -3,7 +3,7 @@ version: "3.7"
 services:
   node_exporter:
     image: quay.io/prometheus/node-exporter:latest
-    container_name: node_exporter
+    container_name: $NODE_EXPORTER_SERVICE_NAME
     restart: unless-stopped
     ports:
       - 9100:9100
@@ -17,7 +17,7 @@ services:
 
   cadvisor:
     image: gcr.io/cadvisor/cadvisor:latest
-    container_name: cadvisor
+    container_name: $CADVISOR_SERVICE_NAME
     restart: unless-stopped
     ports:
     - 9101:8080
@@ -31,7 +31,7 @@ services:
 
   promtail:
     image: grafana/promtail:latest
-    container_name: promtail
+    container_name: $PROMTAIL_SERVICE_NAME
     volumes:
     - /var/log:/var/log
     - /mnt/docker/ymls:/etc/promtail
@@ -43,7 +43,7 @@ services:
 
   watchtower:
     image: containrrr/watchtower
-    container_name: watchtower
+    container_name: $WATCHTOWER_SERVICE_NAME
     environment:
     - WATCHTOWER_NOTIFICATIONS=$WATCHTOWER_NOTIFICATIONS
     - WATCHTOWER_NOTIFICATION_EMAIL_FROM=$WATCHTOWER_NOTIFICATION_EMAIL_FROM
@@ -67,5 +67,5 @@ networks:
     ipam:
       driver: default
       config:
-        - subnet: 172.98.184.32/28
-          gateway: 172.98.184.46
+        - subnet: $MONITORING_SUBNET
+          gateway: $MONITORING_GW

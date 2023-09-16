@@ -13,9 +13,9 @@ services:
       - WEBPASSWORD=$PIHOLE_WEBPASSWORD
     labels:
     - traefik.enable=true 
-    - traefik.http.routers.$PIHOLE_SERVICE_NAME.rule=Host(`$PIHOLE_SERVICE_NAME.$DOMAIN`)
+    - traefik.http.routers.$PIHOLE_SERVICE_NAME.rule=Host(`$PIHOLE_ADDR_NAME.$DOMAIN`)
     - traefik.http.routers.$PIHOLE_SERVICE_NAME.entrypoints=web
-    - traefik.http.routers.$PIHOLE_SERVICE_NAME-https.rule=Host(`$PIHOLE_SERVICE_NAME.$DOMAIN`)
+    - traefik.http.routers.$PIHOLE_SERVICE_NAME-https.rule=Host(`$PIHOLE_ADDR_NAME.$DOMAIN`)
     - traefik.http.routers.$PIHOLE_SERVICE_NAME-https.entrypoints=webs
     - traefik.http.routers.$PIHOLE_SERVICE_NAME-https.middlewares=$AUTHELIA_SERVICE_NAME@docker
     - traefik.http.routers.$PIHOLE_SERVICE_NAME-https.middlewares=$PIHOLE_SERVICE_NAME-prefix
