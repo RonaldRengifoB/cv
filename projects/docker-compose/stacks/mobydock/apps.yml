@@ -2,25 +2,25 @@ version: "3.2"
 services:
   dashy:
     image: lissy93/dashy:latest
-    container_name: dashy
+    container_name: $DASHY_SERVICE_NAME
     environment:
       - PUID=$PUID
       - PGID=$PGID
     labels:
     - traefik.enable=true 
-    - traefik.http.routers.dashy.rule=Host(`$DOMAIN`, `dash.$DOMAIN`, `www.$DOMAIN`)
-    - traefik.http.routers.dashy.entrypoints=web
-    - traefik.http.routers.dashy-https.rule=Host(`$DOMAIN`, `dash.$DOMAIN`, `www.$DOMAIN`)
-    - traefik.http.routers.dashy-https.entrypoints=webs
-    - traefik.http.routers.dashy-https.middlewares=authelia@docker
-    - traefik.http.routers.dashy-https.middlewares=dashy-apexredirect@docker
-    - traefik.http.routers.dashy-https.tls=true
-    - traefik.http.routers.dashy-https.service=dashy
-    - traefik.http.routers.dashy-https.tls.certresolver=$CERTRESOLVER
-    - traefik.http.middlewares.dashy-apexredirect.redirectRegex.regex=^https:\/\/(?:www\.)?$DOMAIN/(.*)
-    - traefik.http.middlewares.dashy-apexredirect.redirectRegex.replacement=https://dash.$DOMAIN/$${1}
-    - traefik.http.middlewares.dashy-apexredirect.redirectRegex.permanent=true
-    - traefik.http.services.dashy.loadbalancer.server.port=80
+    - traefik.http.routers.$DASHY_SERVICE_NAME.rule=Host(`$DOMAIN`, `$DASHY_ADDR_NAME.$DOMAIN`, `www.$DOMAIN`)
+    - traefik.http.routers.$DASHY_SERVICE_NAME.entrypoints=web
+    - traefik.http.routers.$DASHY_SERVICE_NAME-https.rule=Host(`$DOMAIN`, `$DASHY_ADDR_NAME.$DOMAIN`, `www.$DOMAIN`)
+    - traefik.http.routers.$DASHY_SERVICE_NAME-https.entrypoints=webs
+    - traefik.http.routers.$DASHY_SERVICE_NAME-https.middlewares=$AUTHELIA_SERVICE_NAME@docker
+    - traefik.http.routers.$DASHY_SERVICE_NAME-https.middlewares=$DASHY_SERVICE_NAME-apexredirect@docker
+    - traefik.http.routers.$DASHY_SERVICE_NAME-https.tls=true
+    - traefik.http.routers.$DASHY_SERVICE_NAME-https.service=$DASHY_SERVICE_NAME
+    - traefik.http.routers.$DASHY_SERVICE_NAME-https.tls.certresolver=$CERTRESOLVER
+    - traefik.http.middlewares.$DASHY_SERVICE_NAME-apexredirect.redirectRegex.regex=^https:\/\/(?:www\.)?$DOMAIN/(.*)
+    - traefik.http.middlewares.$DASHY_SERVICE_NAME-apexredirect.redirectRegex.replacement=https://$DASHY_ADDR_NAME.$DOMAIN/$${1}
+    - traefik.http.middlewares.$DASHY_SERVICE_NAME-apexredirect.redirectRegex.permanent=true
+    - traefik.http.services.$DASHY_SERVICE_NAME.loadbalancer.server.port=80
     volumes:
       - /mnt/docker/ymls/dashy-config.yml:/app/public/conf.yml
     restart: unless-stopped
@@ -29,22 +29,22 @@ services:
 
   heimdall:
     image: lscr.io/linuxserver/heimdall:latest
-    container_name: heimdall
+    container_name: $HEIMDALL_SERVICE_NAME
     environment:
       - PUID=$PUID
       - PGID=$PGID
     labels:
     - traefik.enable=true 
-    - traefik.http.routers.heimdall.rule=Host(`entertainment.$DOMAIN`)
-    - traefik.http.routers.heimdall.entrypoints=web
-    - traefik.http.routers.heimdall-https.rule=Host(`entertainment.$DOMAIN`)
-    - traefik.http.routers.heimdall-https.entrypoints=webs
-    - traefik.http.routers.heimdall-https.middlewares=authelia@docker
-    - traefik.http.routers.heimdall-https.tls=true
-    - traefik.http.routers.heimdall-https.service=heimdall
-    - traefik.http.routers.heimdall-https.tls.certresolver=$CERTRESOLVER
-    - traefik.http.services.heimdall.loadbalancer.server.port=443
-    - traefik.http.services.heimdall.loadbalancer.server.scheme=https
+    - traefik.http.routers.$HEIMDALL_SERVICE_NAME.rule=Host(`$HEIMDALL_ADDR_NAME.$DOMAIN`)
+    - traefik.http.routers.$HEIMDALL_SERVICE_NAME.entrypoints=web
+    - traefik.http.routers.$HEIMDALL_SERVICE_NAME-https.rule=Host(`$HEIMDALL_ADDR_NAME.$DOMAIN`)
+    - traefik.http.routers.$HEIMDALL_SERVICE_NAME-https.entrypoints=webs
+    - traefik.http.routers.$HEIMDALL_SERVICE_NAME-https.middlewares=$AUTHELIA_SERVICE_NAME@docker
+    - traefik.http.routers.$HEIMDALL_SERVICE_NAME-https.tls=true
+    - traefik.http.routers.$HEIMDALL_SERVICE_NAME-https.service=$HEIMDALL_SERVICE_NAME
+    - traefik.http.routers.$HEIMDALL_SERVICE_NAME-https.tls.certresolver=$CERTRESOLVER
+    - traefik.http.services.$HEIMDALL_SERVICE_NAME.loadbalancer.server.port=443
+    - traefik.http.services.$HEIMDALL_SERVICE_NAME.loadbalancer.server.scheme=https
     volumes:
       - type: volume
         source: heimdall
@@ -57,7 +57,7 @@ services:
 
   mysql:
     image: mariadb:latest
-    container_name: mysql
+    container_name: $MARIADB_SERVICE_NAME
     labels:
       - com.centurylinklabs.watchtower.monitor-only="true"
     volumes:
@@ -72,18 +72,18 @@ services:
 
   cloudbeaver:
     image: dbeaver/cloudbeaver:latest
-    container_name: cloudbeaver
+    container_name: $CLOUDBEAVER_SERVICE_NAME
     labels:
     - traefik.enable=true 
-    - traefik.http.routers.cloudbeaver.rule=Host(`sql.$DOMAIN`)
-    - traefik.http.routers.cloudbeaver.entrypoints=web
-    - traefik.http.routers.cloudbeaver-https.rule=Host(`sql.$DOMAIN`)
-    - traefik.http.routers.cloudbeaver-https.entrypoints=webs
-    - traefik.http.routers.cloudbeaver-https.middlewares=authelia@docker
-    - traefik.http.routers.cloudbeaver-https.tls=true
-    - traefik.http.routers.cloudbeaver-https.service=cloudbeaver
-    - traefik.http.routers.cloudbeaver-https.tls.certresolver=$CERTRESOLVER
-    - traefik.http.services.cloudbeaver.loadbalancer.server.port=8978
+    - traefik.http.routers.$CLOUDBEAVER_SERVICE_NAME.rule=Host(`$CLOUDBEAVER_ADDR_NAME.$DOMAIN`)
+    - traefik.http.routers.$CLOUDBEAVER_SERVICE_NAME.entrypoints=web
+    - traefik.http.routers.$CLOUDBEAVER_SERVICE_NAME-https.rule=Host(`$CLOUDBEAVER_ADDR_NAME.$DOMAIN`)
+    - traefik.http.routers.$CLOUDBEAVER_SERVICE_NAME-https.entrypoints=webs
+    - traefik.http.routers.$CLOUDBEAVER_SERVICE_NAME-https.middlewares=$AUTHELIA_SERVICE_NAME@docker
+    - traefik.http.routers.$CLOUDBEAVER_SERVICE_NAME-https.tls=true
+    - traefik.http.routers.$CLOUDBEAVER_SERVICE_NAME-https.service=$CLOUDBEAVER_SERVICE_NAME
+    - traefik.http.routers.$CLOUDBEAVER_SERVICE_NAME-https.tls.certresolver=$CERTRESOLVER
+    - traefik.http.services.$CLOUDBEAVER_SERVICE_NAME.loadbalancer.server.port=8978
     volumes:
       - type: volume
         source: cloudbeaver
@@ -96,78 +96,78 @@ services:
 
   guacamole:
     image: guacamole/guacamole
-    container_name: guacamole
+    container_name: $GUACAMOLE_SERVICE_NAME
     environment:
-      - MYSQL_DATABASE=$MYSQL_DATABASE
-      - MYSQL_USER=$MYSQL_USER
-      - MYSQL_PASSWORD=$MYSQL_PASSWORD
-      - MYSQL_HOSTNAME=$MYSQL_HOSTNAME
-      - GUACD_HOSTNAME=$GUACD_HOSTNAME
+      - MYSQL_DATABASE=$GUACAMOLE_MYSQL_DATABASE
+      - MYSQL_USER=$GUACAMOLE_MYSQL_USER
+      - MYSQL_PASSWORD=$GUACAMOLE_MYSQL_PASSWORD
+      - MYSQL_HOSTNAME=$MARIADB_SERVICE_NAME
+      - GUACD_HOSTNAME=$GUACAMOLE_DAEMON_SERVICE_NAME
     labels:
       - traefik.enable=true 
-      - traefik.http.routers.guacamole.rule=Host(`remote.$DOMAIN`)
-      - traefik.http.routers.guacamole.entrypoints=web
-      - traefik.http.routers.guacamole-https.rule=Host(`remote.$DOMAIN`)
-      - traefik.http.routers.guacamole-https.entrypoints=webs
-      - traefik.http.routers.guacamole-https.middlewares=guacamole-prefix
-      - traefik.http.routers.guacamole-https.tls=true
-      - traefik.http.routers.guacamole-https.service=guacamole
-      - traefik.http.routers.guacamole-https.tls.certresolver=$CERTRESOLVER
-      - traefik.http.services.guacamole.loadbalancer.server.port=8080
-      - traefik.http.middlewares.guacamole-prefix.addprefix.prefix=/guacamole
+      - traefik.http.routers.$GUACAMOLE_SERVICE_NAME.rule=Host(`$GUACAMOLE_ADDR_NAME.$DOMAIN`)
+      - traefik.http.routers.$GUACAMOLE_SERVICE_NAME.entrypoints=web
+      - traefik.http.routers.$GUACAMOLE_SERVICE_NAME-https.rule=Host(`$GUACAMOLE_ADDR_NAME.$DOMAIN`)
+      - traefik.http.routers.$GUACAMOLE_SERVICE_NAME-https.entrypoints=webs
+      - traefik.http.routers.$GUACAMOLE_SERVICE_NAME-https.middlewares=$GUACAMOLE_SERVICE_NAME-prefix
+      - traefik.http.routers.$GUACAMOLE_SERVICE_NAME-https.tls=true
+      - traefik.http.routers.$GUACAMOLE_SERVICE_NAME-https.service=$GUACAMOLE_SERVICE_NAME
+      - traefik.http.routers.$GUACAMOLE_SERVICE_NAME-https.tls.certresolver=$CERTRESOLVER
+      - traefik.http.services.$GUACAMOLE_SERVICE_NAME.loadbalancer.server.port=8080
+      - traefik.http.middlewares.$GUACAMOLE_SERVICE_NAME-prefix.addprefix.prefix=/guacamole
     networks:
         - internalapps
     restart: unless-stopped
 
   guacamole-daemon:
     image: guacamole/guacd
-    container_name: guacamole-daemon
+    container_name: $GUACAMOLE_DAEMON_SERVICE_NAME
     networks:
         - internalapps
     restart: unless-stopped
 
   shlink-daemon:
     image: shlinkio/shlink:stable
-    container_name: shlink-server
+    container_name: $SHLINK_DAEMON_SERVICE_NAME
     environment:
-    - DEFAULT_DOMAIN=$DEFAULT_DOMAIN
+    - DEFAULT_DOMAIN=$SHLINK_DAEMON_ADDR_NAME.$DOMAIN_FORMAL
     - IS_HTTPS_ENABLED=true
-    - GEOLITE_LICENSE_KEY=$GEOLITE_LICENSE_KEY
-    - DB_DRIVER=$DB_DRIVER
-    - DB_USER=$DB_USER
-    - DB_PASSWORD=$DB_PASSWORD
-    - DB_HOST=$DB_HOST
+    - GEOLITE_LICENSE_KEY=$SHLINK_DAEMON_GEOLITE_LICENSE_KEY
+    - DB_DRIVER=$SHLINK_DAEMON_DB_DRIVER
+    - DB_USER=$SHLINK_DAEMON_DB_USER
+    - DB_PASSWORD=$SHLINK_DAEMON_DB_PASSWORD
+    - DB_HOST=$MARIADB_SERVICE_NAME
     labels:
       - traefik.enable=true 
-      - traefik.http.routers.shlinkserver.rule=Host(`l.$DOMAIN_FORMAL`)
-      - traefik.http.routers.shlinkserver.entrypoints=web
-      - traefik.http.routers.shlinkserver-https.rule=Host(`l.$DOMAIN_FORMAL`)
-      - traefik.http.routers.shlinkserver-https.entrypoints=webs
-      - traefik.http.routers.shlinkserver-https.tls=true
-      - traefik.http.routers.shlinkserver-https.service=shlinkserver
-      - traefik.http.routers.shlinkserver-https.tls.certresolver=$CERTRESOLVER
-      - traefik.http.services.shlinkserver.loadbalancer.server.port=8080
+      - traefik.http.routers.$SHLINK_DAEMON_SERVICE_NAME.rule=Host(`$SHLINK_DAEMON_ADDR_NAME.$DOMAIN_FORMAL`)
+      - traefik.http.routers.$SHLINK_DAEMON_SERVICE_NAME.entrypoints=web
+      - traefik.http.routers.$SHLINK_DAEMON_SERVICE_NAME-https.rule=Host(`$SHLINK_DAEMON_ADDR_NAME.$DOMAIN_FORMAL`)
+      - traefik.http.routers.$SHLINK_DAEMON_SERVICE_NAME-https.entrypoints=webs
+      - traefik.http.routers.$SHLINK_DAEMON_SERVICE_NAME-https.tls=true
+      - traefik.http.routers.$SHLINK_DAEMON_SERVICE_NAME-https.service=$SHLINK_DAEMON_SERVICE_NAME
+      - traefik.http.routers.$SHLINK_DAEMON_SERVICE_NAME-https.tls.certresolver=$CERTRESOLVER
+      - traefik.http.services.$SHLINK_DAEMON_SERVICE_NAME.loadbalancer.server.port=8080
     restart: unless-stopped
     networks:
       - internalapps    
     
   shlink-web-client:
     image: shlinkio/shlink-web-client
-    container_name: shlink-web
+    container_name: $SHLINK_SERVICE_NAME
     environment:
-    - SHLINK_SERVER_URL=https://$SHLINK_DEFAULT_DOMAIN
-    - SHLINK_SERVER_API_KEY=$SHLINK_SERVER_API_KEY
+    - SHLINK_SERVER_URL=https://$SHLINK_DAEMON_ADDR_NAME.$DOMAIN_FORMAL
+    - SHLINK_SERVER_API_KEY=$SHLINK_DAEMON_API_KEY
     labels:
       - traefik.enable=true 
-      - traefik.http.routers.shlink.rule=Host(`link.$DOMAIN`)
-      - traefik.http.routers.shlink.entrypoints=web
-      - traefik.http.routers.shlink-https.rule=Host(`link.$DOMAIN`)
-      - traefik.http.routers.shlink-https.entrypoints=webs
-      - traefik.http.routers.shlink-https.middlewares=authelia@docker
-      - traefik.http.routers.shlink-https.tls=true
-      - traefik.http.routers.shlink-https.service=shlink
-      - traefik.http.routers.shlink-https.tls.certresolver=$CERTRESOLVER
-      - traefik.http.services.shlink.loadbalancer.server.port=80
+      - traefik.http.routers.SHLINK_SERVICE_NAME.rule=Host(`$SHLINK_ADDR_NAME.$DOMAIN`)
+      - traefik.http.routers.SHLINK_SERVICE_NAME.entrypoints=web
+      - traefik.http.routers.SHLINK_SERVICE_NAME-https.rule=Host(`$SHLINK_ADDR_NAME.$DOMAIN`)
+      - traefik.http.routers.SHLINK_SERVICE_NAME-https.entrypoints=webs
+      - traefik.http.routers.SHLINK_SERVICE_NAME-https.middlewares=$AUTHELIA_SERVICE_NAME@docker
+      - traefik.http.routers.SHLINK_SERVICE_NAME-https.tls=true
+      - traefik.http.routers.SHLINK_SERVICE_NAME-https.service=SHLINK_SERVICE_NAME
+      - traefik.http.routers.SHLINK_SERVICE_NAME-https.tls.certresolver=$CERTRESOLVER
+      - traefik.http.services.SHLINK_SERVICE_NAME.loadbalancer.server.port=80
     volumes:
       - type: volume
         source: shlink
@@ -180,56 +180,56 @@ services:
 
   littlelink-server:
     image: timothystewart6/littlelink-server:latest
-    container_name: littlelink-server
+    container_name: $LITTLELINK_SERVICE_NAME
     environment:
-      - META_TITLE=Network Security & Cloud Engineer | Ronald Rengifo
-      - META_DESCRIPTION=Network Security & Cloud Engineer
-      - META_AUTHOR=Ronald Rengifo
-      - LANG=en
-      - META_INDEX_STATUS=all
-      - OG_SITE_NAME=Ronald Rengifo
-      - OG_TITLE=Ronald Rengifo
-#      - OG_DESCRIPTION=Ronald Rengifo
+      - META_TITLE=$LITTLELINK_META_TITLE
+      - META_DESCRIPTION=$LITTLELINK_META_DESCRIPTION
+      - META_AUTHOR=$LITTLELINK_META_AUTHOR
+      - LANG=$LITTLELINK_LANG
+      - META_INDEX_STATUS=$LITTLELINK_META_INDEX_STATUS
+      - OG_SITE_NAME=$LITTLELINK_OG_SITE_NAME
+      - OG_TITLE=$LITTLELINK_OG_TITLE
+#      - OG_DESCRIPTION=
 #      - OG_URL=https://
-      - OG_IMAGE=https://avatars.githubusercontent.com/u/64389538
-      - OG_IMAGE_WIDTH=260
-      - OG_IMAGE_HEIGHT=260
+      - OG_IMAGE=$LITTLELINK_OG_IMAGE
+      - OG_IMAGE_WIDTH=$LITTLELINK_OG_IMAGE_WIDTH
+      - OG_IMAGE_HEIGHT=$LITTLELINK_OG_IMAGE_HEIGHT
 #     - GA_TRACKING_ID=G-XXXXXXXXXX
-      - THEME=Dark
-      - FAVICON_URL=https://avatars.githubusercontent.com/u/64389538
-      - AVATAR_URL=https://avatars.githubusercontent.com/u/64389538
-      - AVATAR_2X_URL=https://avatars.githubusercontent.com/u/64389538
-      - AVATAR_ALT=Ronald Rengifo Profile Pic
-      - NAME=Ronald Rengifo B
-      - BIO=🖥️ Over 10 years navigating the world of Linux Servers and networks ☁️ Now embarking on a Cloud Expedition & Diving into Penetration Testing | SRE - Network Security & Cloud Operations | 🌟 AWS Certified Solutions Architect
+      - THEME=$LITTLELINK_THEME
+      - FAVICON_URL=$LITTLELINK_FAVICON_URL
+      - AVATAR_URL=$LITTLELINK_AVATAR_URL
+      - AVATAR_2X_URL=$LITTLELINK_AVATAR_2X_URL
+      - AVATAR_ALT=$LITTLELINK_AVATAR_ALT
+      - NAME=$LITTLELINK_NAME
+      - BIO=$LITTLELINK_BIO
       # use ENV variable names for order, listed buttons will be boosted to the top
-      - BUTTON_ORDER=CV,LINKED_IN,GITHUB
-      - CUSTOM_BUTTON_TEXT=CV - Resume
-      - CUSTOM_BUTTON_URL=https://l.$DOMAIN_FORMAL/cv
-      - CUSTOM_BUTTON_COLOR=#000000
-      - CUSTOM_BUTTON_TEXT_COLOR=#ffffff
-      - CUSTOM_BUTTON_ALT_TEXT=My Resume
-      - CUSTOM_BUTTON_NAME=CV
-      - CUSTOM_BUTTON_ICON=fas file-alt
-      - LINKED_IN=https://l.$DOMAIN_FORMAL/linkedin
-      - GITHUB=https://l.$DOMAIN_FORMAL/github
-      - EMAIL=hello@$DOMAIN_FORMAL
-      - FOOTER=Ronald Rengifo © 2023
+      - BUTTON_ORDER=$LITTLELINK_BUTTON_ORDER
+      - CUSTOM_BUTTON_TEXT=$LITTLELINK_CUSTOM_BUTTON_TEXT
+      - CUSTOM_BUTTON_URL=$LITTLELINK_CUSTOM_BUTTON_URL
+      - CUSTOM_BUTTON_COLOR=$LITTLELINK_CUSTOM_BUTTON_COLOR
+      - CUSTOM_BUTTON_TEXT_COLOR=$LITTLELINK_CUSTOM_BUTTON_TEXT_COLOR
+      - CUSTOM_BUTTON_ALT_TEXT=$LITTLELINK_CUSTOM_BUTTON_ALT_TEXT
+      - CUSTOM_BUTTON_NAME=$LITTLELINK_CUSTOM_BUTTON_NAME
+      - CUSTOM_BUTTON_ICON=$LITTLELINK_CUSTOM_BUTTON_ICON
+      - LINKED_IN=$LITTLELINK_LINKED_IN
+      - GITHUB=$LITTLELINK_GITHUB
+      - EMAIL=$LITTLELINK_EMAIL
+      - FOOTER=$LITTLELINK_FOOTER
     labels:
       - traefik.enable=true 
-      - traefik.http.routers.littlelink.rule=Host(`$DOMAIN_FORMAL`, `www.$DOMAIN_FORMAL`, `hello.$DOMAIN_FORMAL`)
-      - traefik.http.routers.littlelink.entrypoints=web
-      - traefik.http.routers.littlelink-https.rule=Host(`$DOMAIN_FORMAL`, `www.$DOMAIN_FORMAL`, `hello.$DOMAIN_FORMAL`)
-      - traefik.http.routers.littlelink-https.entrypoints=webs
-      - traefik.http.routers.littlelink-https.middlewares=ll-apexredirect@docker
-      - traefik.http.routers.littlelink-https.tls=true
-      - traefik.http.routers.littlelink-https.tls.certresolver=$CERTRESOLVER
-      - traefik.http.routers.littlelink-https.service=littlelink
-      - traefik.http.middlewares.ll-apexredirect.redirectRegex.regex=^https:\/\/(?:www\.)?$DOMAIN_FORMAL/(.*)
-      - traefik.http.middlewares.ll-apexredirect.redirectRegex.replacement=https://hello.$DOMAIN_FORMAL/$${1}
-      - traefik.http.middlewares.llapexredirect.redirectRegex.permanent=true
+      - traefik.http.routers.$LITTLELINK_SERVICE_NAME.rule=Host(`$DOMAIN_FORMAL`, `www.$DOMAIN_FORMAL`, `$LITTLELINK_ADDR_NAME.$DOMAIN_FORMAL`)
+      - traefik.http.routers.$LITTLELINK_SERVICE_NAME.entrypoints=web
+      - traefik.http.routers.$LITTLELINK_SERVICE_NAME-https.rule=Host(`$DOMAIN_FORMAL`, `www.$DOMAIN_FORMAL`, `$LITTLELINK_ADDR_NAME.$DOMAIN_FORMAL`)
+      - traefik.http.routers.$LITTLELINK_SERVICE_NAME-https.entrypoints=webs
+      - traefik.http.routers.$LITTLELINK_SERVICE_NAME-https.middlewares=$LITTLELINK_SERVICE_NAME-apexredirect@docker
+      - traefik.http.routers.$LITTLELINK_SERVICE_NAME-https.tls=true
+      - traefik.http.routers.$LITTLELINK_SERVICE_NAME-https.tls.certresolver=$CERTRESOLVER
+      - traefik.http.routers.$LITTLELINK_SERVICE_NAME-https.service=$LITTLELINK_SERVICE_NAME
+      - traefik.http.middlewares.$LITTLELINK_SERVICE_NAME-apexredirect.redirectRegex.regex=^https:\/\/(?:www\.)?$DOMAIN_FORMAL/(.*)
+      - traefik.http.middlewares.$LITTLELINK_SERVICE_NAME-apexredirect.redirectRegex.replacement=https://$LITTLELINK_ADDR_NAME.$DOMAIN_FORMAL/$${1}
+      - traefik.http.middlewares.$LITTLELINK_SERVICE_NAME-apexredirect.redirectRegex.permanent=true
 
-      - traefik.http.services.littlelink.loadbalancer.server.port=3000
+      - traefik.http.services.LITTLELINK_SERVICE_NAME.loadbalancer.server.port=3000
     restart: unless-stopped
     networks:
       - internalapps
@@ -238,12 +238,27 @@ services:
 
   qbittorrent:
     image: lscr.io/linuxserver/qbittorrent:latest
-    container_name: qbittorrent
+    container_name: $QBITTORRENT_SERVICE_NAME
     environment:
       - PUID=$PUID
       - PGID=$PGID
       - TZ=$TZ
       - WEBUI_PORT=7070
+    ports:
+      - 6881:6881
+      - 6881:6881/udp
+    labels:
+      - traefik.enable=true 
+      - traefik.http.routers.$QBITTORRENT_SERVICE_NAME.rule=Host(`$QBITTORRENT_ADDR_NAME.$DOMAIN`)
+      - traefik.http.routers.$QBITTORRENT_SERVICE_NAME.entrypoints=web
+      - traefik.http.routers.$QBITTORRENT_SERVICE_NAME-https.rule=Host(`$QBITTORRENT_ADDR_NAME.$DOMAIN`)
+      - traefik.http.routers.$QBITTORRENT_SERVICE_NAME-https.entrypoints=webs
+#check connectivity with external apps
+#      - traefik.http.routers.$QBITTORRENT_SERVICE_NAME-https.middlewares=$AUTHELIA_SERVICE_NAME@docker 
+      - traefik.http.routers.$QBITTORRENT_SERVICE_NAME-https.tls=true
+      - traefik.http.routers.$QBITTORRENT_SERVICE_NAME-https.service=$QBITTORRENT_SERVICE_NAME
+      - traefik.http.routers.$QBITTORRENT_SERVICE_NAME-https.tls.certresolver=$CERTRESOLVER
+      - traefik.http.services.$QBITTORRENT_SERVICE_NAME.loadbalancer.server.port=7070
     volumes:
       - /mnt/download/p2p:/downloads
       - type: volume
@@ -251,21 +266,6 @@ services:
         target: /config
         volume:
           nocopy: true
-    ports:
-      - 6881:6881
-      - 6881:6881/udp
-    labels:
-      - traefik.enable=true 
-      - traefik.http.routers.qbittorrent.rule=Host(`torrent.$DOMAIN`)
-      - traefik.http.routers.qbittorrent.entrypoints=web
-      - traefik.http.routers.qbittorrent-https.rule=Host(`torrent.$DOMAIN`)
-      - traefik.http.routers.qbittorrent-https.entrypoints=webs
-#check connectivity with external apps
-#      - traefik.http.routers.qbittorrent-https.middlewares=authelia@docker 
-      - traefik.http.routers.qbittorrent-https.tls=true
-      - traefik.http.routers.qbittorrent-https.service=qbittorrent
-      - traefik.http.routers.qbittorrent-https.tls.certresolver=$CERTRESOLVER
-      - traefik.http.services.qbittorrent.loadbalancer.server.port=7070
     networks:
       - apps
       - internalapps  
@@ -273,38 +273,54 @@ services:
 
   privatebin:
     image: privatebin/nginx-fpm-alpine:latest
-    container_name: privatebin
+    container_name: $PRIVATEBIN_SERVICE_NAME
     environment:
       - TZ=$TZ
+    labels:
+      - traefik.enable=true 
+      - traefik.http.routers.$PRIVATEBIN_SERVICE_NAME.rule=Host(`$PRIVATEBIN_ADDR_NAME.$DOMAIN`)
+      - traefik.http.routers.$PRIVATEBIN_SERVICE_NAME.entrypoints=web
+      - traefik.http.routers.$PRIVATEBIN_SERVICE_NAME-https.rule=Host(`$PRIVATEBIN_ADDR_NAME.$DOMAIN`)
+      - traefik.http.routers.$PRIVATEBIN_SERVICE_NAME-https.entrypoints=webs
+      - traefik.http.routers.$PRIVATEBIN_SERVICE_NAME-https.tls=true
+      - traefik.http.routers.$PRIVATEBIN_SERVICE_NAME-https.service=$PRIVATEBIN_SERVICE_NAME
+      - traefik.http.routers.$PRIVATEBIN_SERVICE_NAME-https.tls.certresolver=$CERTRESOLVER
+      - traefik.http.services.$PRIVATEBIN_SERVICE_NAME.loadbalancer.server.port=8080
     volumes:
       - /mnt/docker/ymls/privatebin.php:/srv/cfg/conf.php:ro
       - type: volume
         source: privatebin-data
         target: /srv/data
         volume: 
-          nocopy: true
-    labels:
-      - traefik.enable=true 
-      - traefik.http.routers.privatebin.rule=Host(`bin.$DOMAIN`)
-      - traefik.http.routers.privatebin.entrypoints=web
-      - traefik.http.routers.privatebin-https.rule=Host(`bin.$DOMAIN`)
-      - traefik.http.routers.privatebin-https.entrypoints=webs
-      - traefik.http.routers.privatebin-https.tls=true
-      - traefik.http.routers.privatebin-https.service=privatebin
-      - traefik.http.routers.privatebin-https.tls.certresolver=$CERTRESOLVER
-      - traefik.http.services.privatebin.loadbalancer.server.port=8080
+          nocopy: true  
+    
     networks:
       - internalapps  
     restart: unless-stopped
 
   syncthing:
     image: lscr.io/linuxserver/syncthing:latest
-    container_name: syncthing
-    hostname: syncthing
+    container_name: $SYNCTHING_SERVICE_NAME
+    hostname: $SYNCTHING_SERVICE_NAME
     environment:
       - PUID=$PUID
       - PGID=$PGID
       - TZ=$TZ
+    ports:
+      - 22000:22000/tcp
+      - 22000:22000/udp
+      - 21027:21027/udp
+    labels:
+      - traefik.enable=true 
+      - traefik.http.routers.$SYNCTHING_SERVICE_NAME.rule=Host(`$SYNCTHING_ADDR_NAME.$DOMAIN`)
+      - traefik.http.routers.$SYNCTHING_SERVICE_NAME.entrypoints=web
+      - traefik.http.routers.$SYNCTHING_SERVICE_NAME-https.rule=Host(`$SYNCTHING_ADDR_NAME.$DOMAIN`)
+      - traefik.http.routers.$SYNCTHING_SERVICE_NAME-https.entrypoints=webs
+      - traefik.http.routers.$SYNCTHING_SERVICE_NAME-https.middlewares=$AUTHELIA_SERVICE_NAME@docker
+      - traefik.http.routers.$SYNCTHING_SERVICE_NAME-https.tls=true
+      - traefik.http.routers.$SYNCTHING_SERVICE_NAME-https.service=$SYNCTHING_SERVICE_NAME
+      - traefik.http.routers.$SYNCTHING_SERVICE_NAME-https.tls.certresolver=$CERTRESOLVER
+      - traefik.http.services.$SYNCTHING_SERVICE_NAME.loadbalancer.server.port=8384
     volumes:
       - /mnt/batocera:/mnt/batocera
       - type: volume
@@ -312,21 +328,6 @@ services:
         target: /config
         volume: 
           nocopy: true
-    ports:
-      - 22000:22000/tcp
-      - 22000:22000/udp
-      - 21027:21027/udp
-    labels:
-      - traefik.enable=true 
-      - traefik.http.routers.syncthing.rule=Host(`sync.$DOMAIN`)
-      - traefik.http.routers.syncthing.entrypoints=web
-      - traefik.http.routers.syncthing-https.rule=Host(`sync.$DOMAIN`)
-      - traefik.http.routers.syncthing-https.entrypoints=webs
-      - traefik.http.routers.syncthing-https.middlewares=authelia@docker
-      - traefik.http.routers.syncthing-https.tls=true
-      - traefik.http.routers.syncthing-https.service=syncthing
-      - traefik.http.routers.syncthing-https.tls.certresolver=$CERTRESOLVER
-      - traefik.http.services.syncthing.loadbalancer.server.port=8384
     networks:
       - apps
       - internalapps  

@@ -3,20 +3,20 @@ services:
   jenkins:
 #pending change to custom ansible-jenkins image
     image: jenkins/jenkins 
-    container_name: jenkins
+    container_name: $JENKINS_SERVICE_NAME
     ports:
       - 8888:8080
 #    labels:
 #      - traefik.enable=true 
-#      - traefik.http.routers.jenkins.rule=Host(`jenkins.c0d3n4m3.net`)
-#      - traefik.http.routers.jenkins.entrypoints=web
-#      - traefik.http.routers.jenkins-https.rule=Host(`jenkins.c0d3n4m3.net`)
-#      - traefik.http.routers.jenkins-https.entrypoints=webs
-#      - traefik.http.routers.shlink-https.middlewares=authelia@docker
-#      - traefik.http.routers.jenkins-https.tls=true
-#      - traefik.http.routers.jenkins-https.service=jenkins
-#      - traefik.http.routers.jenkins-https.tls.certresolver=letsencrypt
-#      - traefik.http.services.jenkins.loadbalancer.server.port=8080
+#      - traefik.http.routers.$JENKINS_SERVICE_NAME.rule=Host(`$JENKINS_ADDR_NAME.$DOMAIN`)
+#      - traefik.http.routers.$JENKINS_SERVICE_NAME.entrypoints=web
+#      - traefik.http.routers.$JENKINS_SERVICE_NAME-https.rule=Host(`$JENKINS_ADDR_NAME.$DOMAIN`)
+#      - traefik.http.routers.$JENKINS_SERVICE_NAME-https.entrypoints=webs
+#      - traefik.http.routers.$JENKINS_SERVICE_NAME-https.middlewares=$AUTHELIA_SERVICE_NAME@docker
+#      - traefik.http.routers.$JENKINS_SERVICE_NAME-https.tls=true
+#      - traefik.http.routers.$JENKINS_SERVICE_NAME-https.service=$JENKINS_SERVICE_NAME
+#      - traefik.http.routers.$JENKINS_SERVICE_NAME-https.tls.certresolver=letsencrypt
+#      - traefik.http.services.$JENKINS_SERVICE_NAME.loadbalancer.server.port=8080
     volumes:
       - type: volume
         source: jenkins
@@ -34,12 +34,12 @@ networks:
     ipam:
       driver: default
       config:
-        - subnet: 172.98.184.64/27
-          gateway: 172.98.184.94
+        - subnet: $INTERNALAPPS_SUBNET
+          gateway: $INTERNALAPPS_GW
 
 volumes:
   jenkins:
     driver_opts:
       type: "nfs4"
-      o: "addr=10.98.184.199,nolock,soft,rw"
-      device: ":/mnt/pool0/docker/volumes/jenkins/"
+      o: "addr=$NAS_ADDR,$NAS_MOUNT_PARAMS"
+      device: "$NAS_PATH/jenkins/"

@@ -3,8 +3,21 @@ version: "3.7"
 services:
   grafana:
     image: grafana/grafana-oss:latest
-    container_name: grafana
+    container_name: $GRAFANA_SERVICE_NAME
     restart: unless-stopped
+    user: $PUID #uid for axl  
+    ports:
+    - 3000:3000
+#    labels:
+#    - traefik.enable=true 
+#    - traefik.http.routers.$GRAFANA_SERVICE_NAME.rule=Host(`$GRAFANA_ADDR_NAME.$DOMAIN`)
+#    - traefik.http.routers.$GRAFANA_SERVICE_NAME.entrypoints=web
+#    - traefik.http.routers.$GRAFANA_SERVICE_NAME-https.rule=Host(`$GRAFANA_ADDR_NAME.$DOMAIN`)
+#    - traefik.http.routers.$GRAFANA_SERVICE_NAME-https.entrypoints=webs
+#    - traefik.http.routers.$GRAFANA_SERVICE_NAME-https.tls=true
+#    - traefik.http.routers.$GRAFANA_SERVICE_NAME-https.service=$GRAFANA_SERVICE_NAME
+#    - traefik.http.routers.$GRAFANA_SERVICE_NAME-https.tls.certresolver=$CERTRESOLVER
+#    - traefik.http.services.$GRAFANA_SERVICE_NAME.loadbalancer.server.port=3000
     volumes:
       - type: volume
         source: grafana
@@ -13,24 +26,28 @@ services:
           nocopy: true  
     networks:
     - monitoring  
-    ports:
-    - 3000:3000
-#    labels:
-#    - traefik.enable=true 
-#    - traefik.http.routers.grafana.rule=Host(`grafana.c0d3n4m3.net`)
-#    - traefik.http.routers.grafana.entrypoints=web
-#    - traefik.http.routers.grafana-https.rule=Host(`grafana.c0d3n4m3.net`)
-#    - traefik.http.routers.grafana-https.entrypoints=webs
-#    - traefik.http.routers.grafana-https.tls=true
-#    - traefik.http.routers.grafana-https.service=grafana
-#    - traefik.http.routers.grafana-https.tls.certresolver=letsencrypt
-#    - traefik.http.services.grafana.loadbalancer.server.port=3000
-    user: '1000' #uid for axl
 
   prometheus:
     image: prom/prometheus:latest
-    container_name: prometheus
+    container_name: $PROMETHEUS_SERVICE_NAME
     restart: unless-stopped
+    command:
+    - '--config.file=/etc/prometheus/prometheus-config.yml'
+    - '--storage.tsdb.path=/prometheus'
+    - '--storage.tsdb.retention.time=30d' #data retention to 30 days
+    - '--web.enable-lifecycle'
+    ports:
+    - 9090:9090
+#    labels:
+#    - traefik.enable=true 
+#    - traefik.http.routers.$PROMETHEUS_SERVICE_NAME.rule=Host(`$PROMETHEUS_ADDR_NAME.$DOMAIN`)
+#    - traefik.http.routers.$PROMETHEUS_SERVICE_NAME.entrypoints=web
+#    - traefik.http.routers.$PROMETHEUS_SERVICE_NAME-https.rule=Host(`$PROMETHEUS_ADDR_NAME.$DOMAIN`)
+#    - traefik.http.routers.$PROMETHEUS_SERVICE_NAME-https.entrypoints=webs
+#    - traefik.http.routers.$PROMETHEUS_SERVICE_NAME-https.tls=true
+#    - traefik.http.routers.$PROMETHEUS_SERVICE_NAME-https.service=$PROMETHEUS_SERVICE_NAME
+#    - traefik.http.routers.$PROMETHEUS_SERVICE_NAME-https.tls.certresolver=$CERTRESOLVER
+#    - traefik.http.services.$PROMETHEUS_SERVICE_NAME.loadbalancer.server.port=9090
     volumes:
       - /mnt/docker/ymls:/etc/prometheus
       - type: volume
@@ -38,30 +55,13 @@ services:
         target: /prometheus
         volume:
           nocopy: true  
-    ports:
-    - 9090:9090
-#    labels:
-#    - traefik.enable=true 
-#    - traefik.http.routers.prometheus.rule=Host(`prometheus.c0d3n4m3.net`)
-#    - traefik.http.routers.prometheus.entrypoints=web
-#    - traefik.http.routers.prometheus-https.rule=Host(`prometheus.c0d3n4m3.net`)
-#    - traefik.http.routers.prometheus-https.entrypoints=webs
-#    - traefik.http.routers.prometheus-https.tls=true
-#    - traefik.http.routers.prometheus-https.service=prometheus
-#    - traefik.http.routers.prometheus-https.tls.certresolver=letsencrypt
-#    - traefik.http.services.prometheus.loadbalancer.server.port=9090
-    command:
-    - '--config.file=/etc/prometheus/prometheus-config.yml'
-    - '--storage.tsdb.path=/prometheus'
-    - '--storage.tsdb.retention.time=30d' #data retention to 30 days
-    - '--web.enable-lifecycle'
     networks:
     - monitoring
     user: '1000' #uid for axl  
 
   node_exporter:
     image: quay.io/prometheus/node-exporter:latest
-    container_name: node_exporter
+    container_name: $NODE_EXPORTER_SERVICE_NAME
     restart: unless-stopped
     expose:
       - 9100
@@ -75,7 +75,7 @@ services:
 
   snmp_exporter:
     image: prom/snmp-exporter
-    container_name: snmp_exporter
+    container_name: $SNMP_EXPORTER_SERVICE_NAME
     restart: unless-stopped
     volumes:
       - /mnt/docker/ymls/:/etc/snmp_exporter/
@@ -88,7 +88,7 @@ services:
 
   cadvisor:
     image: gcr.io/cadvisor/cadvisor:latest
-    container_name: cadvisor
+    container_name: $CADVISOR_SERVICE_NAME
     restart: unless-stopped
     expose:
     - 8080
@@ -101,20 +101,20 @@ services:
     - monitoring
 
   influxdb:
-    container_name: influxdb
+    container_name: $INFLUXDB_SERVICE_NAME
     image: influxdb:2.1-alpine
     ports:
     - 8086:8086
 #    labels:
 #    - traefik.enable=true 
-#    - traefik.http.routers.influxdb.rule=Host(`influxdb.c0d3n4m3.net`)
-#    - traefik.http.routers.influxdb.entrypoints=web
-#    - traefik.http.routers.influxdb-https.rule=Host(`influxdb.c0d3n4m3.net`)
-#    - traefik.http.routers.influxdb-https.entrypoints=webs
-#    - traefik.http.routers.influxdb-https.tls=true
-#    - traefik.http.routers.influxdb-https.service=influxdb
-#    - traefik.http.routers.influxdb-https.tls.certresolver=letsencrypt
-#    - traefik.http.services.influxdb.loadbalancer.server.port=8086
+#    - traefik.http.routers.$INFLUXDB_SERVICE_NAME.rule=Host(`$INFLUXDB_ADDR_NAME.$DOMAIN`)
+#    - traefik.http.routers.$INFLUXDB_SERVICE_NAME.entrypoints=web
+#    - traefik.http.routers.$INFLUXDB_SERVICE_NAME-https.rule=Host(`$INFLUXDB_ADDR_NAME.$DOMAIN`)
+#    - traefik.http.routers.$INFLUXDB_SERVICE_NAME-https.entrypoints=webs
+#    - traefik.http.routers.$INFLUXDB_SERVICE_NAME-https.tls=true
+#    - traefik.http.routers.$INFLUXDB_SERVICE_NAME-https.service=$INFLUXDB_SERVICE_NAME
+#    - traefik.http.routers.$INFLUXDB_SERVICE_NAME-https.tls.certresolver=$CERTRESOLVER
+#    - traefik.http.services.$INFLUXDB_SERVICE_NAME.loadbalancer.server.port=8086
     user: '1000' #uid for axl 
     volumes:
       - type: volume
@@ -133,7 +133,7 @@ services:
   
   loki:
     image: grafana/loki:latest
-    container_name: loki
+    container_name: $LOKI_SERVICE_NAME
     ports:
     - 3100:3100
     volumes:
@@ -146,7 +146,7 @@ services:
 
   promtail:
     image: grafana/promtail:latest
-    container_name: promtail
+    container_name: $PROMTAIL_SERVICE_NAME
     volumes:
     - /var/log:/var/log
     - /mnt/docker/ymls:/etc/promtail
@@ -158,7 +158,7 @@ services:
 
   uptimekuma:
     image: louislam/uptime-kuma:latest
-    container_name: uptime-kuma
+    container_name: $UPTIMEKUMA_SERVICE_NAME
     environment:
     - PUID=$PUID
     - PGID=$PGID
@@ -166,14 +166,14 @@ services:
     - "3001:3001"
 #    labels:
 #    - traefik.enable=true 
-#    - traefik.http.routers.uptimekuma.rule=Host(`uptime.c0d3n4m3.net`)
-#    - traefik.http.routers.uptimekuma.entrypoints=web
-#    - traefik.http.routers.uptimekuma-https.rule=Host(`uptime.c0d3n4m3.net`)
-#    - traefik.http.routers.uptimekuma-https.entrypoints=webs
-#    - traefik.http.routers.uptimekuma-https.tls=true
-#    - traefik.http.routers.uptimekuma-https.service=uptimekuma
-#    - traefik.http.routers.uptimekuma-https.tls.certresolver=letsencrypt
-#    - traefik.http.services.uptimekuma.loadbalancer.server.port=3001
+#    - traefik.http.routers.$UPTIMEKUMA_SERVICE_NAME.rule=Host(`$UPTIMEKUMA_ADDR_NAME.$DOMAIN`)
+#    - traefik.http.routers.$UPTIMEKUMA_SERVICE_NAME.entrypoints=web
+#    - traefik.http.routers.$UPTIMEKUMA_SERVICE_NAME-https.rule=Host(`$UPTIMEKUMA_ADDR_NAME.$DOMAIN`)
+#    - traefik.http.routers.$UPTIMEKUMA_SERVICE_NAME-https.entrypoints=webs
+#    - traefik.http.routers.$UPTIMEKUMA_SERVICE_NAME-https.tls=true
+#    - traefik.http.routers.$UPTIMEKUMA_SERVICE_NAME-https.service=$UPTIMEKUMA_SERVICE_NAME
+#    - traefik.http.routers.$UPTIMEKUMA_SERVICE_NAME-https.tls.certresolver=$CERTRESOLVER
+#    - traefik.http.services.$UPTIMEKUMA_SERVICE_NAME.loadbalancer.server.port=3001
     volumes:
       - type: volume
         source: uptime-kuma
@@ -184,9 +184,9 @@ services:
     - monitoring  
     restart: unless-stopped
 
-  unpoller:
+  unifipoller:
     image: ghcr.io/unpoller/unpoller:latest
-    container_name: unpoller
+    container_name: $UP_SERVICE_NAME
     environment:
       - UP_PROMETHEUS_DISABLE=$UP_PROMETHEUS_DISABLE
       - UP_INFLUXDB_BUCKET=$UP_INFLUXDB_BUCKET
@@ -204,7 +204,7 @@ services:
 
   watchtower:
     image: containrrr/watchtower
-    container_name: watchtower
+    container_name: $WATCHTOWER_SERVICE_NAME
     environment:
     - WATCHTOWER_NOTIFICATIONS=$WATCHTOWER_NOTIFICATIONS
     - WATCHTOWER_NOTIFICATION_EMAIL_FROM=$WATCHTOWER_NOTIFICATION_EMAIL_FROM
@@ -228,32 +228,32 @@ networks:
     ipam:
       driver: default
       config:
-        - subnet: 172.98.184.32/28
-          gateway: 172.98.184.46
+        - subnet: $MONITORING_SUBNET
+          gateway: $MONITORING_GW
 
 volumes:
   grafana:
     driver_opts:
       type: "nfs4"
-      o: "addr=10.98.184.199,nolock,soft,rw"
-      device: ":/mnt/pool0/docker/volumes/grafana"
+      o: "addr=$NAS_ADDR,$NAS_MOUNT_PARAMS"
+      device: "$NAS_PATH/grafana"
   prometheus:
     driver_opts:
       type: "nfs4"
-      o: "addr=10.98.184.199,nolock,soft,rw"
-      device: ":/mnt/pool0/docker/volumes/prometheus"   
+      o: "addr=$NAS_ADDR,$NAS_MOUNT_PARAMS"
+      device: "$NAS_PATH/prometheus"   
   influxdb-data:
     driver_opts:
       type: "nfs4"
-      o: "addr=10.98.184.199,nolock,soft,rw"
-      device: ":/mnt/pool0/docker/volumes/influxdb/data"
+      o: "addr=$NAS_ADDR,$NAS_MOUNT_PARAMS"
+      device: "$NAS_PATH/influxdb/data"
   influxdb-config:
     driver_opts:
       type: "nfs4"
-      o: "addr=10.98.184.199,nolock,soft,rw"
-      device: ":/mnt/pool0/docker/volumes/influxdb/config"
+      o: "addr=$NAS_ADDR,$NAS_MOUNT_PARAMS"
+      device: "$NAS_PATH/influxdb/config"
   uptime-kuma:
     driver_opts:
       type: "nfs4"
-      o: "addr=10.98.184.199,nolock,soft,rw"
-      device: ":/mnt/pool0/docker/volumes/uptime-kuma"
+      o: "addr=$NAS_ADDR,$NAS_MOUNT_PARAMS"
+      device: "$NAS_PATH/uptime-kuma"
