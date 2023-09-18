@@ -27,34 +27,6 @@ services:
     networks:
       - internalapps 
 
-  heimdall:
-    image: lscr.io/linuxserver/heimdall:latest
-    container_name: $HEIMDALL_SERVICE_NAME
-    environment:
-      - PUID=$PUID
-      - PGID=$PGID
-    labels:
-    - traefik.enable=true 
-    - traefik.http.routers.$HEIMDALL_SERVICE_NAME.rule=Host(`$HEIMDALL_ADDR_NAME.$DOMAIN`)
-    - traefik.http.routers.$HEIMDALL_SERVICE_NAME.entrypoints=web
-    - traefik.http.routers.$HEIMDALL_SERVICE_NAME-https.rule=Host(`$HEIMDALL_ADDR_NAME.$DOMAIN`)
-    - traefik.http.routers.$HEIMDALL_SERVICE_NAME-https.entrypoints=webs
-    - traefik.http.routers.$HEIMDALL_SERVICE_NAME-https.middlewares=$AUTHELIA_SERVICE_NAME@docker
-    - traefik.http.routers.$HEIMDALL_SERVICE_NAME-https.tls=true
-    - traefik.http.routers.$HEIMDALL_SERVICE_NAME-https.service=$HEIMDALL_SERVICE_NAME
-    - traefik.http.routers.$HEIMDALL_SERVICE_NAME-https.tls.certresolver=$CERTRESOLVER
-    - traefik.http.services.$HEIMDALL_SERVICE_NAME.loadbalancer.server.port=443
-    - traefik.http.services.$HEIMDALL_SERVICE_NAME.loadbalancer.server.scheme=https
-    volumes:
-      - type: volume
-        source: heimdall
-        target: /config
-        volume:
-          nocopy: true
-    restart: unless-stopped
-    networks:
-      - internalapps 
-
   mysql:
     image: mariadb:latest
     container_name: $MARIADB_SERVICE_NAME
@@ -263,114 +235,6 @@ services:
       - internalapps  
     restart: unless-stopped
 
-  qbittorrent:
-    image: lscr.io/linuxserver/qbittorrent:latest
-    container_name: $QBITTORRENT_SERVICE_NAME
-    environment:
-      - PUID=$PUID
-      - PGID=$PGID
-      - TZ=$TZ
-      - WEBUI_PORT=7070
-    ports:
-      - 6881:6881
-      - 6881:6881/udp
-    labels:
-      - traefik.enable=true 
-      - traefik.http.routers.$QBITTORRENT_SERVICE_NAME.rule=Host(`$QBITTORRENT_ADDR_NAME.$DOMAIN`)
-      - traefik.http.routers.$QBITTORRENT_SERVICE_NAME.entrypoints=web
-      - traefik.http.routers.$QBITTORRENT_SERVICE_NAME-https.rule=Host(`$QBITTORRENT_ADDR_NAME.$DOMAIN`)
-      - traefik.http.routers.$QBITTORRENT_SERVICE_NAME-https.entrypoints=webs
-#check connectivity with external apps
-#      - traefik.http.routers.$QBITTORRENT_SERVICE_NAME-https.middlewares=$AUTHELIA_SERVICE_NAME@docker 
-      - traefik.http.routers.$QBITTORRENT_SERVICE_NAME-https.tls=true
-      - traefik.http.routers.$QBITTORRENT_SERVICE_NAME-https.service=$QBITTORRENT_SERVICE_NAME
-      - traefik.http.routers.$QBITTORRENT_SERVICE_NAME-https.tls.certresolver=$CERTRESOLVER
-      - traefik.http.services.$QBITTORRENT_SERVICE_NAME.loadbalancer.server.port=7070
-    volumes:
-      - /mnt/download/p2p:/downloads
-      - type: volume
-        source: qbittorrent
-        target: /config
-        volume:
-          nocopy: true
-    networks:
-      - apps  
-    restart: unless-stopped
-
-  jdownloader:
-    image: jaymoulin/jdownloader
-    container_name: $JDOWNLOADER_SERVICE_NAME
-    user: $PUID:$PGID
-    environment: 
-      - MYJD_USER=$JDOWNLOADER_USER
-      - MYJD_PASSWORD=$JDOWNLOADER_PASSWORD
-    labels:
-      - traefik.enable=true 
-      - traefik.http.routers.$JDOWNLOADER_SERVICE_NAME.rule=Host(`$JDOWNLOADER_ADDR_NAME.$DOMAIN`)
-      - traefik.http.routers.$JDOWNLOADER_SERVICE_NAME.entrypoints=web
-      - traefik.http.routers.$JDOWNLOADER_SERVICE_NAME-https.rule=Host(`$JDOWNLOADER_ADDR_NAME.$DOMAIN`)
-      - traefik.http.routers.$JDOWNLOADER_SERVICE_NAME-https.entrypoints=webs
-      - traefik.http.routers.$JDOWNLOADER_SERVICE_NAME-https.middlewares=$AUTHELIA_SERVICE_NAME@docker
-      - traefik.http.routers.$JDOWNLOADER_SERVICE_NAME-https.tls=true
-      - traefik.http.routers.$JDOWNLOADER_SERVICE_NAME-https.service=$JDOWNLOADER_SERVICE_NAME
-      - traefik.http.routers.$JDOWNLOADER_SERVICE_NAME-https.tls.certresolver=$CERTRESOLVER
-      - traefik.http.services.$JDOWNLOADER_SERVICE_NAME.loadbalancer.server.port=3129
-    volumes:
-        - /mnt/download/jdownloader:/opt/JDownloader/Downloads
-        - /etc/localtime:/etc/localtime:ro
-        - type: volume
-          source: jdownloader-config
-          target: /opt/JDownloader/app/cfg
-          volume:
-            nocopy: true
-        - type: volume
-          source: jdownloader-logs
-          target: /opt/JDownloader/app/logs
-          volume:
-            nocopy: true
-        - type: volume
-          source: jdownloader-extensions
-          target: /opt/JDownloader/app/extensions
-          volume:
-            nocopy: true
-    networks:
-      - apps  
-    restart: unless-stopped
-
-  syncthing:
-    image: lscr.io/linuxserver/syncthing:latest
-    container_name: $SYNCTHING_SERVICE_NAME
-    hostname: $SYNCTHING_SERVICE_NAME
-    environment:
-      - PUID=$PUID
-      - PGID=$PGID
-      - TZ=$TZ
-    ports:
-      - 22000:22000/tcp
-      - 22000:22000/udp
-      - 21027:21027/udp
-    labels:
-      - traefik.enable=true 
-      - traefik.http.routers.$SYNCTHING_SERVICE_NAME.rule=Host(`$SYNCTHING_ADDR_NAME.$DOMAIN`)
-      - traefik.http.routers.$SYNCTHING_SERVICE_NAME.entrypoints=web
-      - traefik.http.routers.$SYNCTHING_SERVICE_NAME-https.rule=Host(`$SYNCTHING_ADDR_NAME.$DOMAIN`)
-      - traefik.http.routers.$SYNCTHING_SERVICE_NAME-https.entrypoints=webs
-      - traefik.http.routers.$SYNCTHING_SERVICE_NAME-https.middlewares=$AUTHELIA_SERVICE_NAME@docker
-      - traefik.http.routers.$SYNCTHING_SERVICE_NAME-https.tls=true
-      - traefik.http.routers.$SYNCTHING_SERVICE_NAME-https.service=$SYNCTHING_SERVICE_NAME
-      - traefik.http.routers.$SYNCTHING_SERVICE_NAME-https.tls.certresolver=$CERTRESOLVER
-      - traefik.http.services.$SYNCTHING_SERVICE_NAME.loadbalancer.server.port=8384
-    volumes:
-      - /mnt/batocera:/mnt/batocera
-      - type: volume
-        source: syncthing-data
-        target: /config
-        volume: 
-          nocopy: true
-    networks:
-      - apps  
-    restart: unless-stopped
-
 networks:
   internalapps:
     name: internalapps
@@ -380,27 +244,8 @@ networks:
       config:
         - subnet: $INTERNALAPPS_SUBNET
           gateway: $INTERNALAPPS_GW
-  apps:
-    name: apps
-    ipam:
-      driver: default
-      config:
-        - subnet: $APPS_SUBNET
-          gateway: $APPS_GW
 
 volumes:
-  syncthing-data:
-    driver_opts:
-      type: "nfs4"
-      o: "addr=$NAS_ADDR,$NAS_MOUNT_PARAMS"
-      device: "$NAS_PATH/syncthing/"
-
-  heimdall:
-    driver_opts:
-      type: "nfs4"
-      o: "addr=$NAS_ADDR,$NAS_MOUNT_PARAMS"
-      device: "$NAS_PATH/heimdall/"
-
   shlink:
     driver_opts:
       type: "nfs4"
@@ -423,28 +268,4 @@ volumes:
     driver_opts:
       type: "nfs4"
       o: "addr=$NAS_ADDR,$NAS_MOUNT_PARAMS"
-      device: "$NAS_PATH/privatebin"
-
-  qbittorrent:
-    driver_opts:
-      type: "nfs4"
-      o: "addr=$NAS_ADDR,$NAS_MOUNT_PARAMS"
-      device: "$NAS_PATH/qbittorrent"
-
-  jdownloader-config:
-    driver_opts:
-      type: "nfs4"
-      o: "addr=$NAS_ADDR,$NAS_MOUNT_PARAMS"
-      device: "$NAS_PATH/jdownloader/config"
-
-  jdownloader-logs:
-    driver_opts:
-      type: "nfs4"
-      o: "addr=$NAS_ADDR,$NAS_MOUNT_PARAMS"
-      device: "$NAS_PATH/jdownloader/logs"
-
-  jdownloader-extensions:
-    driver_opts:
-      type: "nfs4"
-      o: "addr=$NAS_ADDR,$NAS_MOUNT_PARAMS"
-      device: "$NAS_PATH/jdownloader/extensions"
+      device: "$NAS_PATH/privatebin/"

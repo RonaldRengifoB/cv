@@ -7,6 +7,7 @@ services:
     ports:
       - "53:53/tcp"
       - "53:53/udp"
+#      - "5380:80"
 #      - "67:67/udp" # Only required if you are using Pi-hole as your DHCP server
     environment:
       - TZ=$TZ
