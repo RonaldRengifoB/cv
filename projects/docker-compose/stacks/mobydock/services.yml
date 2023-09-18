@@ -7,24 +7,24 @@ services:
     ports:
       - "53:53/tcp"
       - "53:53/udp"
-#      - "5380:80"
+      - "5380:80"
 #      - "67:67/udp" # Only required if you are using Pi-hole as your DHCP server
     environment:
       - TZ=$TZ
       - WEBPASSWORD=$PIHOLE_WEBPASSWORD
-    labels:
-    - traefik.enable=true 
-    - traefik.http.routers.$PIHOLE_SERVICE_NAME.rule=Host(`$PIHOLE_ADDR_NAME.$DOMAIN`)
-    - traefik.http.routers.$PIHOLE_SERVICE_NAME.entrypoints=web
-    - traefik.http.routers.$PIHOLE_SERVICE_NAME-https.rule=Host(`$PIHOLE_ADDR_NAME.$DOMAIN`)
-    - traefik.http.routers.$PIHOLE_SERVICE_NAME-https.entrypoints=webs
-    - traefik.http.routers.$PIHOLE_SERVICE_NAME-https.middlewares=$AUTHELIA_SERVICE_NAME@docker
-    - traefik.http.routers.$PIHOLE_SERVICE_NAME-https.middlewares=$PIHOLE_SERVICE_NAME-prefix
-    - traefik.http.routers.$PIHOLE_SERVICE_NAME-https.tls=true
-    - traefik.http.routers.$PIHOLE_SERVICE_NAME-https.service=$PIHOLE_SERVICE_NAME
-    - traefik.http.routers.$PIHOLE_SERVICE_NAME-https.tls.certresolver=$CERTRESOLVER
-    - traefik.http.services.$PIHOLE_SERVICE_NAME.loadbalancer.server.port=80
-    - traefik.http.middlewares.$PIHOLE_SERVICE_NAME-prefix.addprefix.prefix=/admin
+#    labels:
+#    - traefik.enable=true 
+#    - traefik.http.routers.$PIHOLE_SERVICE_NAME.rule=Host(`$PIHOLE_ADDR_NAME.$DOMAIN`)
+#    - traefik.http.routers.$PIHOLE_SERVICE_NAME.entrypoints=web
+#    - traefik.http.routers.$PIHOLE_SERVICE_NAME-https.rule=Host(`$PIHOLE_ADDR_NAME.$DOMAIN`)
+#    - traefik.http.routers.$PIHOLE_SERVICE_NAME-https.entrypoints=webs
+#    - traefik.http.routers.$PIHOLE_SERVICE_NAME-https.middlewares=$AUTHELIA_SERVICE_NAME@docker
+#    - traefik.http.routers.$PIHOLE_SERVICE_NAME-https.middlewares=$PIHOLE_SERVICE_NAME-prefix
+#    - traefik.http.routers.$PIHOLE_SERVICE_NAME-https.tls=true
+#    - traefik.http.routers.$PIHOLE_SERVICE_NAME-https.service=$PIHOLE_SERVICE_NAME
+#    - traefik.http.routers.$PIHOLE_SERVICE_NAME-https.tls.certresolver=$CERTRESOLVER
+#    - traefik.http.services.$PIHOLE_SERVICE_NAME.loadbalancer.server.port=80
+#    - traefik.http.middlewares.$PIHOLE_SERVICE_NAME-prefix.addprefix.prefix=/admin
     volumes:
       - type: volume
         source: pihole
