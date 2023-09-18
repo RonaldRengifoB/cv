@@ -135,8 +135,16 @@ services:
     networks:
     - controllers
     - internalapps
+    - apps
 
 networks:
+  apps:
+    name: apps
+    ipam:
+      driver: default
+      config:
+        - subnet: $APPS_SUBNET
+          gateway: $APPS_GW
   internalapps:
     name: internalapps
     internal: true

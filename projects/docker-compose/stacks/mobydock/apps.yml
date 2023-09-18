@@ -236,6 +236,33 @@ services:
     security_opt:
       - no-new-privileges:true
 
+  privatebin:
+    image: privatebin/nginx-fpm-alpine:latest
+    container_name: $PRIVATEBIN_SERVICE_NAME
+    environment:
+      - TZ=$TZ
+    labels:
+      - traefik.enable=true 
+      - traefik.http.routers.$PRIVATEBIN_SERVICE_NAME.rule=Host(`$PRIVATEBIN_ADDR_NAME.$DOMAIN`)
+      - traefik.http.routers.$PRIVATEBIN_SERVICE_NAME.entrypoints=web
+      - traefik.http.routers.$PRIVATEBIN_SERVICE_NAME-https.rule=Host(`$PRIVATEBIN_ADDR_NAME.$DOMAIN`)
+      - traefik.http.routers.$PRIVATEBIN_SERVICE_NAME-https.entrypoints=webs
+      - traefik.http.routers.$PRIVATEBIN_SERVICE_NAME-https.tls=true
+      - traefik.http.routers.$PRIVATEBIN_SERVICE_NAME-https.service=$PRIVATEBIN_SERVICE_NAME
+      - traefik.http.routers.$PRIVATEBIN_SERVICE_NAME-https.tls.certresolver=$CERTRESOLVER
+      - traefik.http.services.$PRIVATEBIN_SERVICE_NAME.loadbalancer.server.port=8080
+    volumes:
+      - /mnt/docker/ymls/privatebin.php:/srv/cfg/conf.php:ro
+      - type: volume
+        source: privatebin-data
+        target: /srv/data
+        volume: 
+          nocopy: true  
+    
+    networks:
+      - internalapps  
+    restart: unless-stopped
+
   qbittorrent:
     image: lscr.io/linuxserver/qbittorrent:latest
     container_name: $QBITTORRENT_SERVICE_NAME
@@ -267,35 +294,47 @@ services:
         volume:
           nocopy: true
     networks:
-      - apps
-      - internalapps  
+      - apps  
     restart: unless-stopped
 
-  privatebin:
-    image: privatebin/nginx-fpm-alpine:latest
-    container_name: $PRIVATEBIN_SERVICE_NAME
-    environment:
-      - TZ=$TZ
+  jdownloader:
+    image: jaymoulin/jdownloader
+    container_name: $JDOWNLOADER_SERVICE_NAME
+    user: $PUID:$PGID
+    environment: 
+      - MYJD_USER=$JDOWNLOADER_USER
+      - MYJD_PASSWORD=$JDOWNLOADER_PASSWORD
     labels:
       - traefik.enable=true 
-      - traefik.http.routers.$PRIVATEBIN_SERVICE_NAME.rule=Host(`$PRIVATEBIN_ADDR_NAME.$DOMAIN`)
-      - traefik.http.routers.$PRIVATEBIN_SERVICE_NAME.entrypoints=web
-      - traefik.http.routers.$PRIVATEBIN_SERVICE_NAME-https.rule=Host(`$PRIVATEBIN_ADDR_NAME.$DOMAIN`)
-      - traefik.http.routers.$PRIVATEBIN_SERVICE_NAME-https.entrypoints=webs
-      - traefik.http.routers.$PRIVATEBIN_SERVICE_NAME-https.tls=true
-      - traefik.http.routers.$PRIVATEBIN_SERVICE_NAME-https.service=$PRIVATEBIN_SERVICE_NAME
-      - traefik.http.routers.$PRIVATEBIN_SERVICE_NAME-https.tls.certresolver=$CERTRESOLVER
-      - traefik.http.services.$PRIVATEBIN_SERVICE_NAME.loadbalancer.server.port=8080
+      - traefik.http.routers.$JDOWNLOADER_SERVICE_NAME.rule=Host(`$JDOWNLOADER_ADDR_NAME.$DOMAIN`)
+      - traefik.http.routers.$JDOWNLOADER_SERVICE_NAME.entrypoints=web
+      - traefik.http.routers.$JDOWNLOADER_SERVICE_NAME-https.rule=Host(`$JDOWNLOADER_ADDR_NAME.$DOMAIN`)
+      - traefik.http.routers.$JDOWNLOADER_SERVICE_NAME-https.entrypoints=webs
+      - traefik.http.routers.$JDOWNLOADER_SERVICE_NAME-https.middlewares=$AUTHELIA_SERVICE_NAME@docker
+      - traefik.http.routers.$JDOWNLOADER_SERVICE_NAME-https.tls=true
+      - traefik.http.routers.$JDOWNLOADER_SERVICE_NAME-https.service=$JDOWNLOADER_SERVICE_NAME
+      - traefik.http.routers.$JDOWNLOADER_SERVICE_NAME-https.tls.certresolver=$CERTRESOLVER
+      - traefik.http.services.$JDOWNLOADER_SERVICE_NAME.loadbalancer.server.port=3129
     volumes:
-      - /mnt/docker/ymls/privatebin.php:/srv/cfg/conf.php:ro
-      - type: volume
-        source: privatebin-data
-        target: /srv/data
-        volume: 
-          nocopy: true  
-    
+        - /mnt/download/jdownloader:/opt/JDownloader/Downloads
+        - /etc/localtime:/etc/localtime:ro
+        - type: volume
+          source: jdownloader-config
+          target: /opt/JDownloader/app/cfg
+          volume:
+            nocopy: true
+        - type: volume
+          source: jdownloader-logs
+          target: /opt/JDownloader/app/logs
+          volume:
+            nocopy: true
+        - type: volume
+          source: jdownloader-extensions
+          target: /opt/JDownloader/app/extensions
+          volume:
+            nocopy: true
     networks:
-      - internalapps  
+      - apps  
     restart: unless-stopped
 
   syncthing:
@@ -329,8 +368,7 @@ services:
         volume: 
           nocopy: true
     networks:
-      - apps
-      - internalapps  
+      - apps  
     restart: unless-stopped
 
 networks:
@@ -392,3 +430,21 @@ volumes:
       type: "nfs4"
       o: "addr=$NAS_ADDR,$NAS_MOUNT_PARAMS"
       device: "$NAS_PATH/qbittorrent"
+
+  jdownloader-config:
+    driver_opts:
+      type: "nfs4"
+      o: "addr=$NAS_ADDR,$NAS_MOUNT_PARAMS"
+      device: "$NAS_PATH/jdownloader/config"
+
+  jdownloader-logs:
+    driver_opts:
+      type: "nfs4"
+      o: "addr=$NAS_ADDR,$NAS_MOUNT_PARAMS"
+      device: "$NAS_PATH/jdownloader/logs"
+
+  jdownloader-extensions:
+    driver_opts:
+      type: "nfs4"
+      o: "addr=$NAS_ADDR,$NAS_MOUNT_PARAMS"
+      device: "$NAS_PATH/jdownloader/extensions"
