@@ -258,6 +258,12 @@ volumes:
       o: "addr=$NAS_ADDR,$NAS_MOUNT_PARAMS"
       device: "$NAS_PATH/mysql/"
 
+  mongo:
+    driver_opts:
+      type: "nfs4"
+      o: "addr=$NAS_ADDR,$NAS_MOUNT_PARAMS"
+      device: "$NAS_PATH/mongo/"
+
   cloudbeaver:
     driver_opts:
       type: "nfs4"
