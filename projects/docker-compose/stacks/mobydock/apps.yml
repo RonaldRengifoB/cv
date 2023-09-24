@@ -3,6 +3,8 @@ services:
   mysql:
     image: mariadb:latest
     container_name: $MARIADB_SERVICE_NAME
+    ports:
+    - 3306:3306
     labels:
       - com.centurylinklabs.watchtower.monitor-only="true"
     volumes:
