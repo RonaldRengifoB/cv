@@ -15,7 +15,25 @@ services:
           nocopy: true  
     networks:
       - internalapps
-    restart: unless-stopped     
+    restart: unless-stopped
+
+  pgsql:
+    image: postgres:latest
+    container_name: $PGDB_SERVICE_NAME
+    environment:
+    - POSTGRES_DB=$PGBD_DB
+    - PGDATA=/var/lib/postgresql/data/pgdata
+    labels:
+      - com.centurylinklabs.watchtower.monitor-only="true"
+    volumes:
+      - type: volume
+        source: pgsql
+        target: /var/lib/postgresql/data/pgdata
+        volume:
+          nocopy: true  
+    networks:
+      - internalapps
+    restart: unless-stopped          
 
   phpmyadmin:
     image: lscr.io/linuxserver/phpmyadmin:latest
@@ -50,15 +68,46 @@ services:
     networks:
       - internalapps
 
+  phppgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: $PGA_SERVICE_NAME
+    ports: 
+    - 8887:80
+    depends_on:
+    - $PGDB_SERVICE_NAME    
+    environment:
+    - PGADMIN_DEFAULT_EMAIL=$PGA_DEFAULT_EMAIL
+    - PGADMIN_DEFAULT_PASSWORD=$PGA_DEFAULT_PASSWORD
+#    labels:
+#    - traefik.enable=true 
+#    - traefik.http.routers.$PMA_SERVICE_NAME.rule=Host(`$PMA_ADDR_NAME.$DOMAIN`)
+#    - traefik.http.routers.$PMA_SERVICE_NAME.entrypoints=web
+#    - traefik.http.routers.$PMA_SERVICE_NAME-https.rule=Host(`$PMA_ADDR_NAME.$DOMAIN`)
+#    - traefik.http.routers.$PMA_SERVICE_NAME-https.entrypoints=webs
+#    - traefik.http.routers.$PMA_SERVICE_NAME-https.middlewares=$AUTHELIA_SERVICE_NAME@docker
+#    - traefik.http.routers.$PMA_SERVICE_NAME-https.tls=true
+#    - traefik.http.routers.$PMA_SERVICE_NAME-https.service=$PMA_SERVICE_NAME
+#    - traefik.http.routers.$PMA_SERVICE_NAME-https.tls.certresolver=$CERTRESOLVER
+#    - traefik.http.services.$PMA_SERVICE_NAME.loadbalancer.server.port=8978
+    volumes:
+      - type: volume
+        source: phppgadmin
+        target: /var/lib/pgadmin
+        volume:
+          nocopy: true  
+    restart: unless-stopped
+    networks:
+      - internalapps
+
   zabbix-daemon:
-    image: zabbix/zabbix-server-mysql:latest
+    image: zabbix/zabbix-server-pgsql:latest
     container_name: $ZABBIX_SERVER_SERVICE_NAME
     depends_on:
-    - $MARIADB_SERVICE_NAME   
+    - $PGDB_SERVICE_NAME   
     environment:
-    - DB_SERVER_HOST=$MARIADB_SERVICE_NAME
-    - MYSQL_USER=$ZABBIX_MYSQL_USER
-    - MYSQL_PASSWORD=$ZABBIX_MYSQL_PASSWORD
+    - DB_SERVER_HOST=$PGDB_SERVICE_NAME
+    - POSTGRES_USER=$ZABBIX_PGSQL_USER
+    - POSTGRES_PASSWORD=$ZABBIX_PGSQL_PASSWORD
     volumes:
       - type: volume
         source: zabbix-modules
@@ -70,16 +119,16 @@ services:
       - internalapps
 
   zabbix:
-    image: zabbix/zabbix-web-nginx-mysql:latest
+    image: zabbix/zabbix-web-nginx-pgsql:latest
     container_name: $ZABBIX_SERVICE_NAME
     depends_on:
     - $ZABBIX_SERVER_SERVICE_NAME   
     ports:
     - 8888:8080
     environment:
-    - DB_SERVER_HOST=$MARIADB_SERVICE_NAME
-    - MYSQL_USER=$ZABBIX_MYSQL_USER
-    - MYSQL_PASSWORD=$ZABBIX_MYSQL_PASSWORD
+    - DB_SERVER_HOST=$PGDB_SERVICE_NAME
+    - POSTGRES_USER=$ZABBIX_PGSQL_USER
+    - POSTGRES_PASSWORD=$ZABBIX_PGSQL_PASSWORD
     - ZBX_SERVER_HOST=$ZABBIX_SERVER_SERVICE_NAME
     - PHP_TZ=$TZ
     restart: unless-stopped
@@ -295,6 +344,12 @@ volumes:
       o: "addr=$NAS_ADDR,$NAS_MOUNT_PARAMS"
       device: "$NAS_PATH/mysql/"
 
+  pgsql:
+    driver_opts:
+      type: "nfs4"
+      o: "addr=$NAS_ADDR,$NAS_MOUNT_PARAMS"
+      device: "$NAS_PATH/pgsql/"
+
   mongo:
     driver_opts:
       type: "nfs4"
@@ -312,6 +367,12 @@ volumes:
       type: "nfs4"
       o: "addr=$NAS_ADDR,$NAS_MOUNT_PARAMS"
       device: "$NAS_PATH/phpmyadmin/"
+  
+  phppgadmin:
+    driver_opts:
+      type: "nfs4"
+      o: "addr=$NAS_ADDR,$NAS_MOUNT_PARAMS"
+      device: "$NAS_PATH/phppgadmin/"
 
   zabbix-modules:
     driver_opts:
