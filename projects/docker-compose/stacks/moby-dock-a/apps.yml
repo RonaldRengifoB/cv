@@ -43,6 +43,26 @@ services:
     networks:
       - internalapps
 
+  checkmk:
+    image: checkmk/check-mk-raw:2.2.0-latest
+    container_name : $CMK_SERVICE_NAME
+    ports:
+      - 8080:5000
+      - 8000:8000
+    environment:
+      - CMK_PASSWORD=$CMK_PASSWORD
+      - CMK_SITE_ID=$CMK_SITE_ID
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - type: volume
+        source: checkmk
+        target: /omd/sites
+        volume:
+          nocopy: true
+    restart: unless-stopped
+    networks:
+      - internalapps
+
   guacamole:
     image: guacamole/guacamole
     container_name: $GUACAMOLE_SERVICE_NAME
@@ -261,3 +281,9 @@ volumes:
       type: "nfs4"
       o: "addr=$NAS_ADDR,$NAS_MOUNT_PARAMS"
       device: "$NAS_PATH/privatebin/"
+
+  checkmk:
+    driver_opts:
+      type: "nfs4"
+      o: "addr=$NAS_ADDR,$NAS_MOUNT_PARAMS"
+      device: "$NAS_PATH/checkmk/"
