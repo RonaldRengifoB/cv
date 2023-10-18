@@ -17,55 +17,89 @@ services:
       - internalapps
     restart: unless-stopped     
 
-  cloudbeaver:
-    image: dbeaver/cloudbeaver:latest
-    container_name: $CLOUDBEAVER_SERVICE_NAME
+  phpmyadmin:
+    image: lscr.io/linuxserver/phpmyadmin:latest
+    container_name: $PMA_SERVICE_NAME
     ports: 
-    - 8881:8978
+    - 8881:80
+    depends_on:
+    - $MARIADB_SERVICE_NAME    
+    environment:
+      - PUID=$PUID
+      - PGID=$PGID
+      - TZ=$TZ
+      - PMA_ARBITRARY=1
 #    labels:
 #    - traefik.enable=true 
-#    - traefik.http.routers.$CLOUDBEAVER_SERVICE_NAME.rule=Host(`$CLOUDBEAVER_ADDR_NAME.$DOMAIN`)
-#    - traefik.http.routers.$CLOUDBEAVER_SERVICE_NAME.entrypoints=web
-#    - traefik.http.routers.$CLOUDBEAVER_SERVICE_NAME-https.rule=Host(`$CLOUDBEAVER_ADDR_NAME.$DOMAIN`)
-#    - traefik.http.routers.$CLOUDBEAVER_SERVICE_NAME-https.entrypoints=webs
-#    - traefik.http.routers.$CLOUDBEAVER_SERVICE_NAME-https.middlewares=$AUTHELIA_SERVICE_NAME@docker
-#    - traefik.http.routers.$CLOUDBEAVER_SERVICE_NAME-https.tls=true
-#    - traefik.http.routers.$CLOUDBEAVER_SERVICE_NAME-https.service=$CLOUDBEAVER_SERVICE_NAME
-#    - traefik.http.routers.$CLOUDBEAVER_SERVICE_NAME-https.tls.certresolver=$CERTRESOLVER
-#    - traefik.http.services.$CLOUDBEAVER_SERVICE_NAME.loadbalancer.server.port=8978
+#    - traefik.http.routers.$PMA_SERVICE_NAME.rule=Host(`$PMA_ADDR_NAME.$DOMAIN`)
+#    - traefik.http.routers.$PMA_SERVICE_NAME.entrypoints=web
+#    - traefik.http.routers.$PMA_SERVICE_NAME-https.rule=Host(`$PMA_ADDR_NAME.$DOMAIN`)
+#    - traefik.http.routers.$PMA_SERVICE_NAME-https.entrypoints=webs
+#    - traefik.http.routers.$PMA_SERVICE_NAME-https.middlewares=$AUTHELIA_SERVICE_NAME@docker
+#    - traefik.http.routers.$PMA_SERVICE_NAME-https.tls=true
+#    - traefik.http.routers.$PMA_SERVICE_NAME-https.service=$PMA_SERVICE_NAME
+#    - traefik.http.routers.$PMA_SERVICE_NAME-https.tls.certresolver=$CERTRESOLVER
+#    - traefik.http.services.$PMA_SERVICE_NAME.loadbalancer.server.port=8978
     volumes:
       - type: volume
-        source: cloudbeaver
-        target: /opt/cloudbeaver/workspace 
+        source: phpmyadmin
+        target: /config
         volume:
           nocopy: true  
     restart: unless-stopped
     networks:
       - internalapps
 
-  checkmk:
-    image: checkmk/check-mk-raw:2.2.0-latest
-    container_name : $CMK_SERVICE_NAME
-    ports:
-      - 8080:5000
-      - 8000:8000
+  zabbix-daemon:
+    image: zabbix/zabbix-server-mysql:latest
+    container_name: $ZABBIX_SERVER_SERVICE_NAME
+    depends_on:
+    - $MARIADB_SERVICE_NAME   
     environment:
-      - CMK_PASSWORD=$CMK_PASSWORD
-      - CMK_SITE_ID=$CMK_SITE_ID
+    - DB_SERVER_HOST=$MARIADB_SERVICE_NAME
+    - MYSQL_USER=$ZABBIX_MYSQL_USER
+    - MYSQL_PASSWORD=$ZABBIX_MYSQL_PASSWORD
     volumes:
-      - /etc/localtime:/etc/localtime:ro
       - type: volume
-        source: checkmk
-        target: /omd/sites
+        source: zabbix-modules
+        target: /var/lib/zabbix/modules
         volume:
-          nocopy: true
+          nocopy: true  
     restart: unless-stopped
     networks:
       - internalapps
 
+  zabbix:
+    image: zabbix/zabbix-web-nginx-mysql:latest
+    container_name: $ZABBIX_SERVICE_NAME
+    depends_on:
+    - $ZABBIX_SERVER_SERVICE_NAME   
+    ports:
+    - 8888:8080
+    environment:
+    - DB_SERVER_HOST=$MARIADB_SERVICE_NAME
+    - MYSQL_USER=$ZABBIX_MYSQL_USER
+    - MYSQL_PASSWORD=$ZABBIX_MYSQL_PASSWORD
+    - ZBX_SERVER_HOST=$ZABBIX_SERVER_SERVICE_NAME
+    - PHP_TZ=$TZ
+    restart: unless-stopped
+    networks:
+      - internalapps
+
+  guacamole-daemon:
+    image: guacamole/guacd
+    container_name: $GUACAMOLE_DAEMON_SERVICE_NAME
+    depends_on:
+    - $MARIADB_SERVICE_NAME   
+    networks:
+        - internalapps
+    restart: unless-stopped
+
   guacamole:
     image: guacamole/guacamole
     container_name: $GUACAMOLE_SERVICE_NAME
+    depends_on:
+    - $GUACAMOLE_DAEMON_SERVICE_NAME   
     environment:
       - MYSQL_DATABASE=$GUACAMOLE_MYSQL_DATABASE
       - MYSQL_USER=$GUACAMOLE_MYSQL_USER
@@ -91,16 +125,11 @@ services:
         - internalapps
     restart: unless-stopped
 
-  guacamole-daemon:
-    image: guacamole/guacd
-    container_name: $GUACAMOLE_DAEMON_SERVICE_NAME
-    networks:
-        - internalapps
-    restart: unless-stopped
-
   shlink-daemon:
     image: shlinkio/shlink:stable
     container_name: $SHLINK_DAEMON_SERVICE_NAME
+    depends_on:
+    - $MARIADB_SERVICE_NAME   
     environment:
     - DEFAULT_DOMAIN=$SHLINK_DAEMON_ADDR_NAME.$DOMAIN_FORMAL
     - IS_HTTPS_ENABLED=true
@@ -125,9 +154,11 @@ services:
     networks:
       - internalapps    
     
-  shlink-web-client:
+  shlink:
     image: shlinkio/shlink-web-client
     container_name: $SHLINK_SERVICE_NAME
+    depends_on:
+    - $SHLINK_DAEMON_SERVICE_NAME   
     environment:
     - SHLINK_SERVER_URL=https://$SHLINK_DAEMON_ADDR_NAME.$DOMAIN_FORMAL
     - SHLINK_SERVER_API_KEY=$SHLINK_DAEMON_API_KEY
@@ -233,7 +264,7 @@ services:
     volumes:
       - /mnt/docker/ymls/privatebin.php:/srv/cfg/conf.php:ro
       - type: volume
-        source: privatebin-data
+        source: privatebin
         target: /srv/data
         volume: 
           nocopy: true  
@@ -270,20 +301,20 @@ volumes:
       o: "addr=$NAS_ADDR,$NAS_MOUNT_PARAMS"
       device: "$NAS_PATH/mongo/"
 
-  cloudbeaver:
-    driver_opts:
-      type: "nfs4"
-      o: "addr=$NAS_ADDR,$NAS_MOUNT_PARAMS"
-      device: "$NAS_PATH/cloudbeaver/"
-
-  privatebin-data:
+  privatebin:
     driver_opts:
       type: "nfs4"
       o: "addr=$NAS_ADDR,$NAS_MOUNT_PARAMS"
       device: "$NAS_PATH/privatebin/"
-
-  checkmk:
+  
+  phpmyadmin:
     driver_opts:
       type: "nfs4"
       o: "addr=$NAS_ADDR,$NAS_MOUNT_PARAMS"
-      device: "$NAS_PATH/checkmk/"
+      device: "$NAS_PATH/phpmyadmin/"
+
+  zabbix-modules:
+    driver_opts:
+      type: "nfs4"
+      o: "addr=$NAS_ADDR,$NAS_MOUNT_PARAMS"
+      device: "$NAS_PATH/zabbix/modules/"
