@@ -19,6 +19,8 @@ services:
 #    - traefik.http.routers.$GRAFANA_SERVICE_NAME-https.tls.certresolver=$CERTRESOLVER
 #    - traefik.http.services.$GRAFANA_SERVICE_NAME.loadbalancer.server.port=3000
     volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
       - type: volume
         source: grafana
         target: /var/lib/grafana
@@ -49,6 +51,8 @@ services:
 #    - traefik.http.routers.$PROMETHEUS_SERVICE_NAME-https.tls.certresolver=$CERTRESOLVER
 #    - traefik.http.services.$PROMETHEUS_SERVICE_NAME.loadbalancer.server.port=9090
     volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
       - /mnt/docker/ymls:/etc/prometheus
       - type: volume
         source: prometheus
@@ -69,6 +73,8 @@ services:
     - '--path.rootfs=/host'
     pid: host
     volumes:
+    - /etc/localtime:/etc/localtime:ro
+    - /etc/timezone:/etc/timezone:ro
     - '/:/host:ro,rslave'
     networks:
     - monitoring  
@@ -78,6 +84,8 @@ services:
     container_name: $SNMP_EXPORTER_SERVICE_NAME
     restart: unless-stopped
     volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
       - /mnt/docker/ymls/:/etc/snmp_exporter/
     expose:
       - 9116
@@ -93,6 +101,8 @@ services:
     expose:
     - 8080
     volumes:
+    - /etc/localtime:/etc/localtime:ro
+    - /etc/timezone:/etc/timezone:ro
     - /:/rootfs:ro
     - /var/run:/var/run:rw
     - /sys:/sys:ro
@@ -117,6 +127,8 @@ services:
 #    - traefik.http.services.$INFLUXDB_SERVICE_NAME.loadbalancer.server.port=8086
     user: '1000' #uid for axl 
     volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
       - type: volume
         source: influxdb-data
         target: /var/lib/influxdb2
@@ -137,6 +149,8 @@ services:
     ports:
     - 3100:3100
     volumes:
+    - /etc/localtime:/etc/localtime:ro
+    - /etc/timezone:/etc/timezone:ro
     - /mnt/docker/ymls:/etc/loki
     command:
     - '--config.file=/etc/loki/loki-config.yml'    
@@ -148,6 +162,8 @@ services:
     image: grafana/promtail:latest
     container_name: $PROMTAIL_SERVICE_NAME
     volumes:
+    - /etc/localtime:/etc/localtime:ro
+    - /etc/timezone:/etc/timezone:ro
     - /var/log:/var/log
     - /mnt/docker/ymls:/etc/promtail
     command:
@@ -175,6 +191,8 @@ services:
 #    - traefik.http.routers.$UPTIMEKUMA_SERVICE_NAME-https.tls.certresolver=$CERTRESOLVER
 #    - traefik.http.services.$UPTIMEKUMA_SERVICE_NAME.loadbalancer.server.port=3001
     volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
       - type: volume
         source: uptime-kuma
         target: /app/data
@@ -198,6 +216,9 @@ services:
       - UP_UNIFI_DEFAULT_PASS=$UP_UNIFI_DEFAULT_PASS
       - UP_UNIFI_DEFAULT_URL=$UP_UNIFI_DEFAULT_URL
       - UP_UNIFI_DEFAULT_SAVE_DPI=$UP_UNIFI_DEFAULT_SAVE_DPI
+    volumes:
+    - /etc/localtime:/etc/localtime:ro
+    - /etc/timezone:/etc/timezone:ro
     networks:
       - monitoring  
     restart: unless-stopped
@@ -217,6 +238,8 @@ services:
     - WATCHTOWER_CLEANUP=true
     - WATCHTOWER_SCHEDULE=0 0 2 * * ?
     volumes:
+    - /etc/localtime:/etc/localtime:ro
+    - /etc/timezone:/etc/timezone:ro
     - /var/run/docker.sock:/var/run/docker.sock
     networks:
       - monitoring  
