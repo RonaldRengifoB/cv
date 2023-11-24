@@ -17,7 +17,7 @@ services:
           nocopy: true  
     networks:
       - internalapps
-    restart: unless-stopped
+    restart: always
 
   pgsql:
     image: postgres:15
@@ -39,7 +39,7 @@ services:
           nocopy: true  
     networks:
       - internalapps
-    restart: unless-stopped          
+    restart: always          
 
   phpmyadmin:
     image: lscr.io/linuxserver/phpmyadmin:latest
@@ -72,7 +72,7 @@ services:
         target: /config
         volume:
           nocopy: true  
-    restart: unless-stopped  
+    restart: always  
     networks:
       - internalapps
 
@@ -105,7 +105,7 @@ services:
         target: /var/lib/pgadmin
         volume:
           nocopy: true  
-    restart: unless-stopped  
+    restart: always  
     networks:
       - internalapps
 
@@ -128,7 +128,7 @@ services:
         target: /var/lib/zabbix/modules
         volume:
           nocopy: true  
-    restart: on-failure
+    restart: always
     networks:
       - internalapps
 
@@ -148,7 +148,7 @@ services:
     volumes:
     - /etc/localtime:/etc/localtime:ro
     - /etc/timezone:/etc/timezone:ro
-    restart: unless-stopped
+    restart: always
     networks:
       - internalapps
 
@@ -159,7 +159,7 @@ services:
     - $MARIADB_SERVICE_NAME   
     networks:
         - internalapps
-    restart: on-failure
+    restart: always
 
   guacamole:
     image: guacamole/guacamole
@@ -192,7 +192,7 @@ services:
     - /etc/timezone:/etc/timezone:ro
     networks:
     - internalapps
-    restart: unless-stopped
+    restart: always
 
   shlink-daemon:
     image: shlinkio/shlink:stable
@@ -222,7 +222,7 @@ services:
     volumes:
       - /etc/localtime:/etc/localtime:ro
       - /etc/timezone:/etc/timezone:ro
-    restart: on-failure
+    restart: always
     networks:
       - internalapps    
     
@@ -255,7 +255,7 @@ services:
         target: /usr/share/nginx/html/conf.d/
         volume:
           nocopy: true  
-    restart: unless-stopped
+    restart: always
     networks:
       - internalapps
 
@@ -312,7 +312,7 @@ services:
 #      - traefik.http.middlewares.$LITTLELINK_SERVICE_NAME-apexredirect.redirectRegex.replacement=https://$LITTLELINK_ADDR_NAME.$DOMAIN_FORMAL/$${1}
 #      - traefik.http.middlewares.$LITTLELINK_SERVICE_NAME-apexredirect.redirectRegex.permanent=true
 #      - traefik.http.services.$LITTLELINK_SERVICE_NAME.loadbalancer.server.port=3000
-    restart: unless-stopped
+    restart: always
     networks:
       - internalapps
     security_opt:
@@ -347,7 +347,7 @@ services:
     
     networks:
       - internalapps  
-    restart: unless-stopped
+    restart: always
 
 networks:
   internalapps:

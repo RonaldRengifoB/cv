@@ -4,7 +4,7 @@ services:
   grafana:
     image: grafana/grafana-oss:latest
     container_name: $GRAFANA_SERVICE_NAME
-    restart: unless-stopped
+    restart: always
     user: $PUID #uid for axl  
     ports:
     - 3000:3000
@@ -32,7 +32,7 @@ services:
   prometheus:
     image: prom/prometheus:latest
     container_name: $PROMETHEUS_SERVICE_NAME
-    restart: unless-stopped
+    restart: always
     command:
     - '--config.file=/etc/prometheus/prometheus-config.yml'
     - '--storage.tsdb.path=/prometheus'
@@ -66,7 +66,7 @@ services:
   node_exporter:
     image: quay.io/prometheus/node-exporter:latest
     container_name: $NODE_EXPORTER_SERVICE_NAME
-    restart: unless-stopped
+    restart: always
     expose:
       - 9100
     command:
@@ -82,7 +82,7 @@ services:
   snmp_exporter:
     image: prom/snmp-exporter
     container_name: $SNMP_EXPORTER_SERVICE_NAME
-    restart: unless-stopped
+    restart: always
     volumes:
       - /etc/localtime:/etc/localtime:ro
       - /etc/timezone:/etc/timezone:ro
@@ -97,7 +97,7 @@ services:
   cadvisor:
     image: gcr.io/cadvisor/cadvisor:latest
     container_name: $CADVISOR_SERVICE_NAME
-    restart: unless-stopped
+    restart: always
     expose:
     - 8080
     volumes:
@@ -141,7 +141,7 @@ services:
           nocopy: true    
     networks:
     - monitoring
-    restart: unless-stopped
+    restart: always
   
   loki:
     image: grafana/loki:latest
@@ -156,7 +156,7 @@ services:
     - '--config.file=/etc/loki/loki-config.yml'    
     networks:
     - monitoring  
-    restart: unless-stopped
+    restart: always
 
   promtail:
     image: grafana/promtail:latest
@@ -170,7 +170,7 @@ services:
     - '--config.file=/etc/promtail/promtail-config.yml'    
     networks:
     - monitoring  
-    restart: unless-stopped
+    restart: always
 
   uptimekuma:
     image: louislam/uptime-kuma:latest
@@ -200,7 +200,7 @@ services:
           nocopy: true  
     networks:
     - monitoring  
-    restart: unless-stopped
+    restart: always
 
   unifipoller:
     image: ghcr.io/unpoller/unpoller:latest
@@ -221,7 +221,7 @@ services:
     - /etc/timezone:/etc/timezone:ro
     networks:
       - monitoring  
-    restart: unless-stopped
+    restart: always
 
   watchtower:
     image: containrrr/watchtower
@@ -243,7 +243,7 @@ services:
     - /var/run/docker.sock:/var/run/docker.sock
     networks:
       - monitoring  
-    restart: unless-stopped
+    restart: always
 
 networks:
   monitoring:

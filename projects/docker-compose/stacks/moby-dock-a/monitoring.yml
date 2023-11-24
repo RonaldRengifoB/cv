@@ -4,7 +4,7 @@ services:
   node_exporter:
     image: quay.io/prometheus/node-exporter:latest
     container_name: $NODE_EXPORTER_SERVICE_NAME
-    restart: unless-stopped
+    restart: always
     ports:
       - 9100:9100
     command:
@@ -20,7 +20,7 @@ services:
   cadvisor:
     image: gcr.io/cadvisor/cadvisor:latest
     container_name: $CADVISOR_SERVICE_NAME
-    restart: unless-stopped
+    restart: always
     ports:
     - 9101:8080
     volumes:
@@ -45,7 +45,7 @@ services:
     - '--config.file=/etc/promtail/promtail-config.yml'    
     networks:
     - monitoring  
-    restart: unless-stopped
+    restart: always
 
   watchtower:
     image: containrrr/watchtower
@@ -67,7 +67,7 @@ services:
     - /var/run/docker.sock:/var/run/docker.sock
     networks:
       - monitoring  
-    restart: unless-stopped
+    restart: always
 
 networks:
   monitoring:
