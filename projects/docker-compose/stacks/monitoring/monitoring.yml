@@ -110,11 +110,11 @@ services:
     networks:
     - monitoring
 
-  influxdb:
-    container_name: $INFLUXDB_SERVICE_NAME
-    image: influxdb:2.1-alpine
-    ports:
-    - 8086:8086
+#  influxdb:
+#    container_name: $INFLUXDB_SERVICE_NAME
+#    image: influxdb:2.1-alpine
+#    ports:
+#    - 8086:8086
 #    labels:
 #    - traefik.enable=true 
 #    - traefik.http.routers.$INFLUXDB_SERVICE_NAME.rule=Host(`$INFLUXDB_ADDR_NAME.$DOMAIN`)
@@ -125,23 +125,23 @@ services:
 #    - traefik.http.routers.$INFLUXDB_SERVICE_NAME-https.service=$INFLUXDB_SERVICE_NAME
 #    - traefik.http.routers.$INFLUXDB_SERVICE_NAME-https.tls.certresolver=$CERTRESOLVER
 #    - traefik.http.services.$INFLUXDB_SERVICE_NAME.loadbalancer.server.port=8086
-    user: '1000' #uid for axl 
-    volumes:
-      - /etc/localtime:/etc/localtime:ro
-      - /etc/timezone:/etc/timezone:ro
-      - type: volume
-        source: influxdb-data
-        target: /var/lib/influxdb2
-        volume:
-          nocopy: true
-      - type: volume
-        source: influxdb-config
-        target: /etc/influxdb2
-        volume:
-          nocopy: true    
-    networks:
-    - monitoring
-    restart: always
+#    user: '1000' #uid for axl 
+#    volumes:
+#      - /etc/localtime:/etc/localtime:ro
+#      - /etc/timezone:/etc/timezone:ro
+#      - type: volume
+#        source: influxdb-data
+#        target: /var/lib/influxdb2
+#        volume:
+#          nocopy: true
+#      - type: volume
+#        source: influxdb-config
+#        target: /etc/influxdb2
+#        volume:
+#          nocopy: true    
+#    networks:
+#    - monitoring
+#    restart: always
   
   loki:
     image: grafana/loki:latest
@@ -265,16 +265,16 @@ volumes:
       type: "nfs4"
       o: "addr=$NAS_ADDR,$NAS_MOUNT_PARAMS"
       device: "$NAS_PATH/prometheus"   
-  influxdb-data:
-    driver_opts:
-      type: "nfs4"
-      o: "addr=$NAS_ADDR,$NAS_MOUNT_PARAMS"
-      device: "$NAS_PATH/influxdb/data"
-  influxdb-config:
-    driver_opts:
-      type: "nfs4"
-      o: "addr=$NAS_ADDR,$NAS_MOUNT_PARAMS"
-      device: "$NAS_PATH/influxdb/config"
+#  influxdb-data:
+#    driver_opts:
+#      type: "nfs4"
+#      o: "addr=$NAS_ADDR,$NAS_MOUNT_PARAMS"
+#      device: "$NAS_PATH/influxdb/data"
+#  influxdb-config:
+#    driver_opts:
+#      type: "nfs4"
+#      o: "addr=$NAS_ADDR,$NAS_MOUNT_PARAMS"
+#      device: "$NAS_PATH/influxdb/config"
   uptime-kuma:
     driver_opts:
       type: "nfs4"

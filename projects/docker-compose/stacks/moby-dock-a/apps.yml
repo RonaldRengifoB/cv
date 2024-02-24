@@ -1,53 +1,51 @@
 version: "3.2"
 services:
-  mysql:
-    image: mariadb:latest
-    container_name: $MARIADB_SERVICE_NAME
-    ports:
-    - 3306:3306
-    labels:
-      - com.centurylinklabs.watchtower.monitor-only="true"
-    volumes:
-      - /etc/localtime:/etc/localtime:ro
-      - /etc/timezone:/etc/timezone:ro
-      - type: volume
-        source: mysql
-        target: /var/lib/mysql
-        volume:
-          nocopy: true  
-    networks:
-      - internalapps
-    restart: always
+#  mysql:
+#    image: mariadb:latest
+#   container_name: $MARIADB_SERVICE_NAME
+#    ports:
+#    - 3306:3306
+#    labels:
+#      - com.centurylinklabs.watchtower.monitor-only="true"
+#    volumes:
+#      - /etc/localtime:/etc/localtime:ro
+#      - /etc/timezone:/etc/timezone:ro
+#      - type: volume
+#        source: mysql
+#        target: /var/lib/mysql
+#        volume:
+#          nocopy: true  
+#    networks:
+#      - internalapps
+#    restart: always
 
-  pgsql:
-    image: postgres:15
-    container_name: $PGDB_SERVICE_NAME
-    environment:
-    - POSTGRES_USER=$PGBD_USER
-    - POSTGRES_PASSWORD=$PGBD_PASSWORD
-    - POSTGRES_DB=$PGBD_DB
-    - PGDATA=/var/lib/postgresql/data/pgdata
-    labels:
-      - com.centurylinklabs.watchtower.monitor-only="true"
-    volumes:
-      - /etc/localtime:/etc/localtime:ro
-      - /etc/timezone:/etc/timezone:ro
-      - type: volume
-        source: pgsql
-        target: /var/lib/postgresql/data/pgdata
-        volume:
-          nocopy: true  
-    networks:
-      - internalapps
-    restart: always          
+#  pgsql:
+#    image: postgres:15
+#    container_name: $PGDB_SERVICE_NAME
+#    environment:
+#    - POSTGRES_USER=$PGBD_USER
+#    - POSTGRES_PASSWORD=$PGBD_PASSWORD
+#    - POSTGRES_DB=$PGBD_DB
+#   - PGDATA=/var/lib/postgresql/data/pgdata
+#    labels:
+#      - com.centurylinklabs.watchtower.monitor-only="true"
+#    volumes:
+#      - /etc/localtime:/etc/localtime:ro
+#      - /etc/timezone:/etc/timezone:ro
+#      - type: volume
+#        source: pgsql
+#        target: /var/lib/postgresql/data/pgdata
+#        volume:
+#          nocopy: true  
+#    networks:
+#      - internalapps
+#    restart: always          
 
   phpmyadmin:
     image: lscr.io/linuxserver/phpmyadmin:latest
     container_name: $PMA_SERVICE_NAME
     ports: 
     - 8881:80
-    depends_on:
-    - $MARIADB_SERVICE_NAME    
     environment:
       - PUID=$PUID
       - PGID=$PGID
@@ -81,8 +79,6 @@ services:
     container_name: $PGA_SERVICE_NAME
     ports: 
     - 8887:80
-    depends_on:
-    - $PGDB_SERVICE_NAME    
     environment:
     - PGADMIN_DEFAULT_EMAIL=$PGA_DEFAULT_EMAIL
     - PGADMIN_DEFAULT_PASSWORD=$PGA_DEFAULT_PASSWORD
@@ -112,12 +108,11 @@ services:
   zabbix-daemon:
     image: zabbix/zabbix-server-pgsql:latest
     container_name: $ZABBIX_SERVER_SERVICE_NAME
-    depends_on:
-    - $PGDB_SERVICE_NAME
     ports:
     - 10456:10051
     environment:
-    - DB_SERVER_HOST=$PGDB_SERVICE_NAME
+    - DB_SERVER_HOST=$DB_ADDR
+    - DB_SERVER_PORT=$PGDB_PORT
     - POSTGRES_USER=$ZABBIX_PGSQL_USER
     - POSTGRES_PASSWORD=$ZABBIX_PGSQL_PASSWORD
     volumes:
@@ -140,7 +135,8 @@ services:
     ports:
     - 8888:8080
     environment:
-    - DB_SERVER_HOST=$PGDB_SERVICE_NAME
+    - DB_SERVER_HOST=$DB_ADDR
+    - DB_SERVER_PORT=$PGDB_PORT
     - POSTGRES_USER=$ZABBIX_PGSQL_USER
     - POSTGRES_PASSWORD=$ZABBIX_PGSQL_PASSWORD
     - ZBX_SERVER_HOST=$ZABBIX_SERVER_SERVICE_NAME
@@ -155,8 +151,6 @@ services:
   guacamole-daemon:
     image: guacamole/guacd
     container_name: $GUACAMOLE_DAEMON_SERVICE_NAME
-    depends_on:
-    - $MARIADB_SERVICE_NAME   
     networks:
         - internalapps
     restart: always
@@ -170,7 +164,7 @@ services:
       - MYSQL_DATABASE=$GUACAMOLE_MYSQL_DATABASE
       - MYSQL_USER=$GUACAMOLE_MYSQL_USER
       - MYSQL_PASSWORD=$GUACAMOLE_MYSQL_PASSWORD
-      - MYSQL_HOSTNAME=$MARIADB_SERVICE_NAME
+      - MYSQL_HOSTNAME=$DB_ADDR
       - GUACD_HOSTNAME=$GUACAMOLE_DAEMON_SERVICE_NAME
     ports:
     - 8882:8080
@@ -197,8 +191,6 @@ services:
   shlink-daemon:
     image: shlinkio/shlink:stable
     container_name: $SHLINK_DAEMON_SERVICE_NAME
-    depends_on:
-    - $MARIADB_SERVICE_NAME   
     environment:
     - DEFAULT_DOMAIN=$SHLINK_DAEMON_ADDR_NAME.$DOMAIN_FORMAL
     - IS_HTTPS_ENABLED=true
@@ -206,7 +198,7 @@ services:
     - DB_DRIVER=$SHLINK_DAEMON_DB_DRIVER
     - DB_USER=$SHLINK_DAEMON_DB_USER
     - DB_PASSWORD=$SHLINK_DAEMON_DB_PASSWORD
-    - DB_HOST=$MARIADB_SERVICE_NAME
+    - DB_HOST=$DB_ADDR
     ports:
     - 8883:8080
 #    labels:
@@ -344,10 +336,45 @@ services:
         target: /srv/data
         volume: 
           nocopy: true  
-    
     networks:
       - internalapps  
     restart: always
+  
+  smokeping:
+    image: lscr.io/linuxserver/smokeping:latest
+    container_name: $SMOKEPING_SERVICE_NAME
+    environment:
+      - PUID=$PUID
+      - PGID=$PGID
+      - TZ=$TZ
+#    labels:
+#      - traefik.enable=true 
+#      - traefik.http.routers.$SMOKEPING_SERVICE_NAME.rule=Host(`$SMOKEPING_ADDR_NAME.$DOMAIN`)
+#      - traefik.http.routers.$SMOKEPING_SERVICE_NAME.entrypoints=web
+#      - traefik.http.routers.$SMOKEPING_SERVICE_NAME-https.rule=Host(`$SMOKEPING_ADDR_NAME.$DOMAIN`)
+#      - traefik.http.routers.$SMOKEPING_SERVICE_NAME-https.entrypoints=webs
+#      - traefik.http.routers.$SMOKEPING_SERVICE_NAME-https.tls=true
+#      - traefik.http.routers.$SMOKEPING_SERVICE_NAME-https.service=$SMOKEPING_SERVICE_NAME
+#      - traefik.http.routers.$SMOKEPING_SERVICE_NAME-https.tls.certresolver=$CERTRESOLVER
+#      - traefik.http.services.$SMOKEPING_SERVICE_NAME.loadbalancer.server.port=8080
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
+      - type: volume
+        source: smokeping-data
+        target: /data
+        volume:
+          nocopy: true
+      - type: volume
+        source: smokeping-config
+        target: /config
+        volume:
+          nocopy: true    
+    ports:
+      - 8889:80
+    networks:
+      - internalapps  
+    restart: unless-stopped
 
 networks:
   internalapps:
@@ -365,23 +392,17 @@ volumes:
       o: "addr=$NAS_ADDR,$NAS_MOUNT_PARAMS"
       device: "$NAS_PATH/shlink/"
 
-  mysql:
-    driver_opts:
-      type: "nfs4"
-      o: "addr=$NAS_ADDR,$NAS_MOUNT_PARAMS"
-      device: "$NAS_PATH/mysql/"
+#  mysql:
+#    driver_opts:
+#      type: "nfs4"
+#      o: "addr=$NAS_ADDR,$NAS_MOUNT_PARAMS"
+#      device: "$NAS_PATH/mysql/"
 
-  pgsql:
-    driver_opts:
-      type: "nfs4"
-      o: "addr=$NAS_ADDR,$NAS_MOUNT_PARAMS"
-      device: "$NAS_PATH/pgsql/"
-
-  mongo:
-    driver_opts:
-      type: "nfs4"
-      o: "addr=$NAS_ADDR,$NAS_MOUNT_PARAMS"
-      device: "$NAS_PATH/mongo/"
+#  pgsql:
+#    driver_opts:
+#      type: "nfs4"
+#      o: "addr=$NAS_ADDR,$NAS_MOUNT_PARAMS"
+#      device: "$NAS_PATH/pgsql/"
 
   privatebin:
     driver_opts:
@@ -406,3 +427,15 @@ volumes:
       type: "nfs4"
       o: "addr=$NAS_ADDR,$NAS_MOUNT_PARAMS"
       device: "$NAS_PATH/zabbix/modules/"
+
+  smokeping-data:
+    driver_opts:
+      type: "nfs4"
+      o: "addr=$NAS_ADDR,$NAS_MOUNT_PARAMS"
+      device: "$NAS_PATH/smokeping/data/"
+
+  smokeping-config:
+    driver_opts:
+      type: "nfs4"
+      o: "addr=$NAS_ADDR,$NAS_MOUNT_PARAMS"
+      device: "$NAS_PATH/smokeping/config/"
