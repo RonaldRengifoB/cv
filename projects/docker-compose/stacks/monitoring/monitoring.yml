@@ -6,6 +6,9 @@ services:
     container_name: $GRAFANA_SERVICE_NAME
     restart: always
     user: $PUID #uid for axl  
+    environment:
+    - GF_SERVER_DOMAIN=$GRAFANA_ADDR_NAME.$DOMAIN
+    - GF_INSTALL_PLUGINS=grafana-clock-panel,yesoreyeram-infinity-datasource 
     ports:
     - 3000:3000
 #    labels:
@@ -67,8 +70,8 @@ services:
     image: quay.io/prometheus/node-exporter:latest
     container_name: $NODE_EXPORTER_SERVICE_NAME
     restart: always
-    expose:
-      - 9100
+    ports:
+      - 9100:9100
     command:
     - '--path.rootfs=/host'
     pid: host
@@ -87,8 +90,8 @@ services:
       - /etc/localtime:/etc/localtime:ro
       - /etc/timezone:/etc/timezone:ro
       - /mnt/docker/ymls/:/etc/snmp_exporter/
-    expose:
-      - 9116
+    ports:
+    - 9116:9116
     command:
     - '--config.file=/etc/snmp_exporter/snmp_exporter-config.yml'
     networks:
@@ -98,8 +101,8 @@ services:
     image: gcr.io/cadvisor/cadvisor:latest
     container_name: $CADVISOR_SERVICE_NAME
     restart: always
-    expose:
-    - 8080
+    ports:
+    - 9101:8080
     volumes:
     - /etc/localtime:/etc/localtime:ro
     - /etc/timezone:/etc/timezone:ro
@@ -143,20 +146,20 @@ services:
 #    - monitoring
 #    restart: always
   
-  loki:
-    image: grafana/loki:latest
-    container_name: $LOKI_SERVICE_NAME
-    ports:
-    - 3100:3100
-    volumes:
-    - /etc/localtime:/etc/localtime:ro
-    - /etc/timezone:/etc/timezone:ro
-    - /mnt/docker/ymls:/etc/loki
-    command:
-    - '--config.file=/etc/loki/loki-config.yml'    
-    networks:
-    - monitoring  
-    restart: always
+#  loki:
+#    image: grafana/loki:latest
+#    container_name: $LOKI_SERVICE_NAME
+#    ports:
+#    - 3100:3100
+#    volumes:
+#    - /etc/localtime:/etc/localtime:ro
+#    - /etc/timezone:/etc/timezone:ro
+#    - /mnt/docker/ymls:/etc/loki
+#    command:
+#    - '--config.file=/etc/loki/loki-config.yml'    
+#    networks:
+#    - monitoring  
+#    restart: always
 
   promtail:
     image: grafana/promtail:latest
