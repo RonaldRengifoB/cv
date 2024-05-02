@@ -3,6 +3,6 @@
 
 🧪 Some projects that I run in my lab - (https://github.com/RonaldRengifoB/cv/tree/master/projects).
 
-💪 Some coding exercises - (https://github.com/RonaldRengifoB/cv/tree/master/training).
+💪 Some coding exercises - (https://github.com/RonaldRengifoB/cv/tree/master/dev-excercise).
 
 hope you like it!. 😁
