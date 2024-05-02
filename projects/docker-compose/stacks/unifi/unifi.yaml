@@ -1,0 +1,66 @@
+version: "3.2"
+services:
+  
+  unifi-controller:
+    image: lscr.io/linuxserver/unifi-network-application:latest
+    container_name: $UNIFI_SERVICE_NAME
+    environment:
+      - PUID=$PUID
+      - PGID=$PGID
+      - TZ=$TZ
+      - MONGO_USER=$UNIFI_MONGO_USER
+      - MONGO_PASS=$UNIFI_MONGO_PASS
+      - MONGO_HOST=$UNIFI_MONGO_HOST
+      - MONGO_PORT=$UNIFI_MONGO_PORT
+      - MONGO_DBNAME=$UNIFI_MONGO_DBNAME
+      - MEM_LIMIT=$UNIFI_MEM_LIMIT
+      - MEM_STARTUP=$UNIFI_MEM_STARTUP
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
+      - type: volume
+        source: unifi-controller
+        target: /config
+        volume:
+          nocopy: true        
+    ports:
+      - 8443:8443
+      - 3478:3478/udp
+      - 10001:10001/udp
+      - 8080:8080
+      - 6789:6789 #Mobile throughput test
+      - 1900:1900/udp #Required for Make controller discoverable on L2 network option
+      - 8843:8843 #Unifi guest portal HTTPS redirect port
+      - 8880:8880 #Unifi guest portal HTTP redirect port
+      - 5514:5514/udp #syslog report
+#    labels:
+#    - com.centurylinklabs.watchtower.monitor-only="true"
+#    - traefik.enable=true 
+#    - traefik.http.routers.$UNIFI_SERVICE_NAME.rule=Host(`$UNIFI_ADDR_NAME.$DOMAIN`)
+#    - traefik.http.routers.$UNIFI_SERVICE_NAME.entrypoints=web
+#    - traefik.http.routers.$UNIFI_SERVICE_NAME-https.rule=Host(`$UNIFI_ADDR_NAME.$DOMAIN`)
+#    - traefik.http.routers.$UNIFI_SERVICE_NAME-https.entrypoints=webs
+#    - traefik.http.routers.$UNIFI_SERVICE_NAME-https.tls=true
+#    - traefik.http.routers.$UNIFI_SERVICE_NAME-https.service=$UNIFI_SERVICE_NAME
+#    - traefik.http.routers.$UNIFI_SERVICE_NAME-https.tls.certresolver=letsencrypt
+#    - traefik.http.services.$UNIFI_SERVICE_NAME.loadbalancer.server.port=8443
+#    - traefik.http.services.$UNIFI_SERVICE_NAME.loadbalancer.server.scheme=https
+    networks:
+      - apps  
+    restart: always
+
+networks:
+  apps:
+    name: apps
+    ipam:
+      driver: default
+      config:
+        - subnet: $APPS_SUBNET
+          gateway: $APPS_GW
+
+volumes:
+  unifi-controller:
+    driver_opts:
+      type: "nfs4"
+      o: "addr=$NAS_ADDR,$NAS_MOUNT_PARAMS"
+      device: "$NAS_PATH/unifi-controller"

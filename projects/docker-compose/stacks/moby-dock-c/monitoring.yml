@@ -1,0 +1,79 @@
+version: "3.7"
+
+services:
+  node_exporter:
+    image: quay.io/prometheus/node-exporter:latest
+    container_name: $NODE_EXPORTER_SERVICE_NAME
+    restart: always
+    ports:
+      - 9100:9100
+    command:
+    - '--path.rootfs=/host'
+    pid: host
+    volumes:
+    - '/:/host:ro,rslave'
+    - /etc/localtime:/etc/localtime:ro
+    - /etc/timezone:/etc/timezone:ro    
+    networks:
+    - monitoring  
+
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:latest
+    container_name: $CADVISOR_SERVICE_NAME
+    restart: always
+    ports:
+    - 9101:8080
+    volumes:
+    - /etc/localtime:/etc/localtime:ro
+    - /etc/timezone:/etc/timezone:ro    
+    - /:/rootfs:ro
+    - /var/run:/var/run:rw
+    - /sys:/sys:ro
+    - /var/lib/docker/:/var/lib/docker:ro
+    networks:
+    - monitoring
+
+  promtail:
+    image: grafana/promtail:latest
+    container_name: $PROMTAIL_SERVICE_NAME
+    volumes:
+    - /etc/localtime:/etc/localtime:ro
+    - /etc/timezone:/etc/timezone:ro    
+    - /var/log:/var/log
+    - /mnt/docker/ymls:/etc/promtail
+    command:
+    - '--config.file=/etc/promtail/promtail-config.yml'    
+    networks:
+    - monitoring  
+    restart: always
+
+  watchtower:
+    image: containrrr/watchtower
+    container_name: $WATCHTOWER_SERVICE_NAME
+    environment:
+    - WATCHTOWER_NOTIFICATIONS=$WATCHTOWER_NOTIFICATIONS
+    - WATCHTOWER_NOTIFICATION_EMAIL_FROM=$WATCHTOWER_NOTIFICATION_EMAIL_FROM
+    - WATCHTOWER_NOTIFICATION_EMAIL_TO=$WATCHTOWER_NOTIFICATION_EMAIL_TO
+    - WATCHTOWER_NOTIFICATION_EMAIL_SERVER=$WATCHTOWER_NOTIFICATION_EMAIL_SERVER
+    - WATCHTOWER_NOTIFICATION_EMAIL_SERVER_PORT=$WATCHTOWER_NOTIFICATION_EMAIL_SERVER_PORT
+    - WATCHTOWER_NOTIFICATION_EMAIL_SERVER_USER=$WATCHTOWER_NOTIFICATION_EMAIL_SERVER_USER
+    - WATCHTOWER_NOTIFICATION_EMAIL_SERVER_PASSWORD=$WATCHTOWER_NOTIFICATION_EMAIL_SERVER_PASSWORD
+    - WATCHTOWER_NOTIFICATION_EMAIL_DELAY=$WATCHTOWER_NOTIFICATION_EMAIL_DELAY
+    - WATCHTOWER_CLEANUP=true
+    - WATCHTOWER_SCHEDULE=0 0 2 * * ?
+    volumes:
+    - /etc/localtime:/etc/localtime:ro
+    - /etc/timezone:/etc/timezone:ro    
+    - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - monitoring  
+    restart: always
+
+networks:
+  monitoring:
+    name: monitoring
+    ipam:
+      driver: default
+      config:
+        - subnet: $MONITORING_SUBNET
+          gateway: $MONITORING_GW

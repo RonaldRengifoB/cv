@@ -1,0 +1,66 @@
+version: "3.2"
+services:
+  
+#  mongo:
+#    image: mongo:4.4.24
+#    container_name: $MONGO_SERVICE_NAME
+#    environment:
+#      MONGO_INITDB_ROOT_USERNAME: $MONGO_INITDB_ROOT_USERNAME
+#      MONGO_INITDB_ROOT_PASSWORD: $MONGO_INITDB_ROOT_PASSWORD
+#    volumes:
+#      - /mnt/docker/ymls/init-mongo.js:/docker-entrypoint-initdb.d/init-mongo.js:ro
+#      - /etc/localtime:/etc/localtime:ro
+#      - /etc/timezone:/etc/timezone:ro
+#      - type: volume
+#        source: mongo
+#        target: /data/db
+#        volume:
+#          nocopy: true  
+#    restart: always
+#    networks:
+#      - apps 
+
+  mongo-express:
+    image: mongo-express
+    container_name: $ME_MONGO_SERVICE_NAME
+    environment:
+      ME_CONFIG_MONGODB_ADMINUSERNAME: $MONGO_INITDB_ROOT_USERNAME
+      ME_CONFIG_MONGODB_ADMINPASSWORD: $MONGO_INITDB_ROOT_PASSWORD
+      ME_CONFIG_MONGODB_SERVER: $MONGO_SERVER
+      ME_CONFIG_BASICAUTH_USERNAME: $ME_CONFIG_BASICAUTH_USERNAME
+      ME_CONFIG_BASICAUTH_PASSWORD: $ME_CONFIG_BASICAUTH_PASSWORD
+    ports:
+      - 8081:8081
+#    labels:
+#    - traefik.enable=true 
+#    - traefik.http.routers.$ME_MONGO_SERVICE_NAME.rule=Host(`$ME_MONGO_ADDR_NAME.$DOMAIN`)
+#    - traefik.http.routers.$ME_MONGO_SERVICE_NAME.entrypoints=web
+#    - traefik.http.routers.$ME_MONGO_SERVICE_NAME-https.rule=Host(`$ME_MONGO_ADDR_NAME.$DOMAIN`)
+#    - traefik.http.routers.$ME_MONGO_SERVICE_NAME-https.entrypoints=webs
+#    - traefik.http.routers.$ME_MONGO_SERVICE_NAME-https.middlewares=$AUTHELIA_SERVICE_NAME@docker
+#    - traefik.http.routers.$ME_MONGO_SERVICE_NAME-https.tls=true
+#    - traefik.http.routers.$ME_MONGO_SERVICE_NAME-https.service=$ME_MONGO_SERVICE_NAME
+#    - traefik.http.routers.$ME_MONGO_SERVICE_NAME-https.tls.certresolver=$CERTRESOLVER
+#    - traefik.http.services.$ME_MONGO_SERVICE_NAME.loadbalancer.server.port=8081
+    volumes:
+    - /etc/localtime:/etc/localtime:ro
+    - /etc/timezone:/etc/timezone:ro
+    restart: always
+    networks:
+      - apps 
+
+networks:
+  apps:
+    name: apps
+    ipam:
+      driver: default
+      config:
+        - subnet: $APPS_SUBNET
+          gateway: $APPS_GW
+
+#volumes:
+#  mongo:
+#    driver_opts:
+#      type: "nfs4"
+#      o: "addr=$NAS_ADDR,$NAS_MOUNT_PARAMS"
+#      device: "$NAS_PATH/mongodb"
