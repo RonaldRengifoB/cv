@@ -30,7 +30,7 @@ services:
           nocopy: true
     restart: always
     networks:
-      - apps 
+      - arr 
 
   qbittorrent:
     image: lscr.io/linuxserver/qbittorrent:latest
@@ -67,7 +67,7 @@ services:
         volume:
           nocopy: true
     networks:
-      - apps  
+      - arr  
     restart: always
 
   sabnzbd:
@@ -89,8 +89,10 @@ services:
         target: /config
         volume:
           nocopy: true
+    
     restart: always
-
+    networks:
+      - arr  
   jdownloader:
     image: jlesage/jdownloader-2
     container_name: $JDOWNLOADER_SERVICE_NAME
@@ -117,7 +119,7 @@ services:
           volume:
             nocopy: true
     networks:
-      - apps  
+      - arr  
     restart: always
 
   prowlarr:
@@ -147,7 +149,7 @@ services:
       volume:
         nocopy: true
     networks:
-      - apps
+      - arr
     restart: always  
   
   sonarr:
@@ -179,7 +181,7 @@ services:
         volume:
           nocopy: true
     networks:
-      - apps
+      - arr
     restart: always
   
   radarr:
@@ -211,7 +213,7 @@ services:
         volume:
           nocopy: true
     networks:
-      - apps
+      - arr
     restart: always
   
   bazarr:
@@ -243,7 +245,7 @@ services:
         volume:
           nocopy: true
     networks:
-      - apps
+      - arr
     restart: always
 
   jellyseerr:
@@ -261,7 +263,7 @@ services:
         volume:
           nocopy: true
     networks:
-      - apps 
+      - arr 
     restart: always
 
   qbitrr:
@@ -280,7 +282,7 @@ services:
           nocopy: true
     restart: always
     networks:
-      - apps
+      - arr
 
   flaresolverr:
     image: ghcr.io/flaresolverr/flaresolverr:latest
@@ -293,17 +295,57 @@ services:
     ports:
       - 8191:8191
     networks:
-      - apps
+      - arr
+    restart: always
+
+  autobrr:
+    container_name: $AUTOBRR_SERVICE_NAME
+    image: ghcr.io/autobrr/autobrr:latest
+    user: 1000:1000
+    environment:
+      - TZ=$TZ
+      - AUTOBRR__DATABASE_TYPE=$AUTOBRR_DATABASE_TYPE
+      - AUTOBRR__POSTGRES_HOST=$AUTOBRR_POSTGRES_HOST
+      - AUTOBRR__POSTGRES_PORT=$AUTOBRR_POSTGRES_PORT
+      - AUTOBRR__POSTGRES_DATABASE=$AUTOBRR_POSTGRES_DATABASE
+      - AUTOBRR__POSTGRES_USER=$AUTOBRR_POSTGRES_USER
+      - AUTOBRR__POSTGRES_PASS=$AUTOBRR_POSTGRES_PASS
+    volumes:
+      - type: volume
+        source: autobrr
+        target: /config
+        volume:
+          nocopy: true
+    ports:
+      - 7474:7474
+    networks:
+      - arr
+    restart: always
+
+  omegabrr:
+    container_name: $OMEGABRR_SERVICE_NAME
+    image: ghcr.io/autobrr/omegabrr:latest
+    ports:
+      - 7441:7441
+    user: 1000:1000
+    volumes:
+      - type: volume
+        source: omegabrr
+        target: /config
+        volume:
+          nocopy: true
+    networks:
+      - arr
     restart: always
 
 networks:
-  apps:
-    name: apps
+  arr:
+    name: arr
     ipam:
       driver: default
       config:
-        - subnet: $APPS_SUBNET
-          gateway: $APPS_GW
+        - subnet: $ARR_SUBNET
+          gateway: $ARR_GW
 
 volumes:
   heimdall:
@@ -365,3 +407,15 @@ volumes:
       type: "nfs4"
       o: "addr=$NAS_ADDR,$NAS_MOUNT_PARAMS"
       device: "$NAS_PATH/jellyseerr"
+
+  autobrr:
+    driver_opts:
+      type: "nfs4"
+      o: "addr=$NAS_ADDR,$NAS_MOUNT_PARAMS"
+      device: "$NAS_PATH/autobrr"
+  
+  omegabrr:
+    driver_opts:
+      type: "nfs4"
+      o: "addr=$NAS_ADDR,$NAS_MOUNT_PARAMS"
+      device: "$NAS_PATH/omegabrr"

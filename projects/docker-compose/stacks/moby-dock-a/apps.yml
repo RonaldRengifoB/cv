@@ -375,6 +375,44 @@ services:
     networks:
       - internalapps  
     restart: unless-stopped
+  
+  thelounge:
+    image: lscr.io/linuxserver/thelounge:latest
+    container_name: $LOUNGE_SERVICE_NAME
+    environment:
+      - PUID=$PUID
+      - PGID=$PGID
+      - TZ=$TZ
+    volumes:
+      - type: volume
+        source: lounge
+        target: /config
+        volume:
+          nocopy: true   
+    ports:
+      - 9000:9000
+    networks:
+      - internalapps  
+    restart: unless-stopped
+
+  znc:
+    image: lscr.io/linuxserver/znc:latest
+    container_name: $ZNC_SERVICE_NAME
+    environment:
+      - PUID=$PUID
+      - PGID=$PGID
+      - TZ=$TZ
+    volumes:
+      - type: volume
+        source: znc
+        target: /config
+        volume:
+          nocopy: true  
+    ports:
+      - 6501:6501
+    networks:
+      - internalapps  
+    restart: unless-stopped
 
 networks:
   internalapps:
@@ -439,3 +477,15 @@ volumes:
       type: "nfs4"
       o: "addr=$NAS_ADDR,$NAS_MOUNT_PARAMS"
       device: "$NAS_PATH/smokeping/config/"
+
+  lounge:
+    driver_opts:
+      type: "nfs4"
+      o: "addr=$NAS_ADDR,$NAS_MOUNT_PARAMS"
+      device: "$NAS_PATH/lounge/"
+
+  znc:
+    driver_opts:
+      type: "nfs4"
+      o: "addr=$NAS_ADDR,$NAS_MOUNT_PARAMS"
+      device: "$NAS_PATH/znc/"
