@@ -257,6 +257,8 @@ services:
     ports:
       - 5055:5055
     volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /mnt/data/torrents:/data/torrents
       - type: volume
         source: jellyseerr
         target: /app/config
@@ -292,6 +294,9 @@ services:
       - LOG_HTML=$FLARESOLVERR_LOG_HTML
       - CAPTCHA_SOLVER=$FLARESOLVERR_CAPTCHA_SOLVER
       - TZ=$TZ
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
     ports:
       - 8191:8191
     networks:
@@ -311,6 +316,8 @@ services:
       - AUTOBRR__POSTGRES_USER=$AUTOBRR_POSTGRES_USER
       - AUTOBRR__POSTGRES_PASS=$AUTOBRR_POSTGRES_PASS
     volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
       - type: volume
         source: autobrr
         target: /config
@@ -329,6 +336,8 @@ services:
       - 7441:7441
     user: 1000:1000
     volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
       - type: volume
         source: omegabrr
         target: /config

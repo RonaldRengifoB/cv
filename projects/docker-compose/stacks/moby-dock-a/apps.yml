@@ -384,6 +384,8 @@ services:
       - PGID=$PGID
       - TZ=$TZ
     volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /mnt/data/torrents:/data/torrents
       - type: volume
         source: lounge
         target: /config

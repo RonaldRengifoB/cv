@@ -36,11 +36,6 @@ services:
     image: prom/prometheus:latest
     container_name: $PROMETHEUS_SERVICE_NAME
     restart: always
-    command:
-    - '--config.file=/etc/prometheus/prometheus-config.yml'
-    - '--storage.tsdb.path=/prometheus'
-    - '--storage.tsdb.retention.time=30d' #data retention to 30 days
-    - '--web.enable-lifecycle'
     ports:
     - 9090:9090
 #    labels:
@@ -53,15 +48,22 @@ services:
 #    - traefik.http.routers.$PROMETHEUS_SERVICE_NAME-https.service=$PROMETHEUS_SERVICE_NAME
 #    - traefik.http.routers.$PROMETHEUS_SERVICE_NAME-https.tls.certresolver=$CERTRESOLVER
 #    - traefik.http.services.$PROMETHEUS_SERVICE_NAME.loadbalancer.server.port=9090
+    configs:
+      - source: prometheus
+        target: /etc/prometheus/prometheus-config.yml    
     volumes:
       - /etc/localtime:/etc/localtime:ro
       - /etc/timezone:/etc/timezone:ro
-      - /mnt/docker/ymls:/etc/prometheus
       - type: volume
         source: prometheus
         target: /prometheus
         volume:
           nocopy: true  
+    command:
+    - '--config.file=/etc/prometheus/prometheus-config.yml'
+    - '--storage.tsdb.path=/prometheus'
+    - '--storage.tsdb.retention.time=30d' #data retention to 30 days
+    - '--web.enable-lifecycle'
     networks:
     - monitoring
     user: '1000' #uid for axl  
@@ -86,16 +88,18 @@ services:
     image: prom/snmp-exporter
     container_name: $SNMP_EXPORTER_SERVICE_NAME
     restart: always
+    configs:
+      - source: snmp-exporter
+        target: /etc/snmp_exporter/snmp_exporter-config.yml
     volumes:
       - /etc/localtime:/etc/localtime:ro
       - /etc/timezone:/etc/timezone:ro
-      - /mnt/docker/ymls/:/etc/snmp_exporter/
-    ports:
-    - 9116:9116
     command:
     - '--config.file=/etc/snmp_exporter/snmp_exporter-config.yml'
     networks:
     - monitoring
+    ports:
+    - 9116:9116
 
   cadvisor:
     image: gcr.io/cadvisor/cadvisor:latest
@@ -146,35 +150,6 @@ services:
 #    - monitoring
 #    restart: always
   
-#  loki:
-#    image: grafana/loki:latest
-#    container_name: $LOKI_SERVICE_NAME
-#    ports:
-#    - 3100:3100
-#    volumes:
-#    - /etc/localtime:/etc/localtime:ro
-#    - /etc/timezone:/etc/timezone:ro
-#    - /mnt/docker/ymls:/etc/loki
-#    command:
-#    - '--config.file=/etc/loki/loki-config.yml'    
-#    networks:
-#    - monitoring  
-#    restart: always
-
-  promtail:
-    image: grafana/promtail:latest
-    container_name: $PROMTAIL_SERVICE_NAME
-    volumes:
-    - /etc/localtime:/etc/localtime:ro
-    - /etc/timezone:/etc/timezone:ro
-    - /var/log:/var/log
-    - /mnt/docker/ymls:/etc/promtail
-    command:
-    - '--config.file=/etc/promtail/promtail-config.yml'    
-    networks:
-    - monitoring  
-    restart: always
-
   uptimekuma:
     image: louislam/uptime-kuma:latest
     container_name: $UPTIMEKUMA_SERVICE_NAME
@@ -226,6 +201,100 @@ services:
       - monitoring  
     restart: always
 
+  elasticsearch:
+    image: elasticsearch:latest
+    container_name: elasticsearch
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+    configs:
+      - source: elasticsearch
+        target: /usr/share/elasticsearch/elasticsearch.yml
+    volumes:
+      - type: volume
+        source: elasticsearch
+        target: /usr/share/elasticsearch/data/
+        volume:
+          nocopy: true  
+    environment:
+      - discovery.type=single-node
+      - http.host=0.0.0.0
+      - transport.host=0.0.0.0
+      - xpack.security.enabled=false
+      - xpack.monitoring.enabled=false
+      - cluster.name=elasticsearch
+      - bootstrap.memory_lock=true
+    networks:
+      - monitoring
+
+  logstash:
+    image: logstash::latest
+    container_name: logstash
+    ports:
+      - "5044:5044"
+      - "9600:9600"
+    configs:
+      - source: logstash
+        target: /usr/share/filebeat/logstash.yml
+      - source: logstash-conf
+        target: /usr/share/filebeat/filebeat.conf
+    volumes:
+      - type: volume
+        source: logstash
+        target: /usr/share/logstash/data
+        volume:
+          nocopy: true  
+    networks:
+      - monnitoring
+    depends_on:
+      - elasticsearch
+
+  kibana:
+    image: kibana:latest
+    container_name: kibana
+    ports:
+      - "5601:5601"
+    configs:
+      - source: kibana
+        target: /usr/share/kibana/kibana.yml
+    volumes:
+      - type: volume
+        source: kibana
+        target: /usr/share/kibana/data
+        volume:
+          nocopy: true  
+    networks:
+      - monitoring
+    depends_on:
+      - elasticsearch
+
+  filebeat:
+    image: filebea::latest
+    hostname: filebeat
+    user: root
+    configs:
+      - source: filebeat
+        target: /usr/share/filebeat/filebeat.yml
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /var/lib/docker/containers/:/var/lib/docker/containers/:ro
+      - /var/log/:/var/log/:ro
+      - /var/log/audit/:/var/log/audit/:ro
+      - type: volume
+        source: filebeat
+        target: /usr/share/filebeat/data
+        volume:
+          nocopy: true  
+    environment:
+      - ELASTICSEARCH_HOST=${ELASTICSEARCH_HOST:-node1}
+      - KIBANA_HOST=${KIBANA_HOST:-node1}
+      - ELASTICSEARCH_USERNAME=${ELASTICSEARCH_USERNAME:-elastic}
+      - ELASTICSEARCH_PASSWORD=${ELASTICSEARCH_PASSWORD:-changeme}
+    command: ["--strict.perms=false"]
+    networks:
+      - monitoring
+
+
   watchtower:
     image: containrrr/watchtower
     container_name: $WATCHTOWER_SERVICE_NAME
@@ -257,29 +326,73 @@ networks:
         - subnet: $MONITORING_SUBNET
           gateway: $MONITORING_GW
 
+configs:
+  filebeat:
+    file: /mnt/docker/ymls/filebeat.yml
+  elasticsearch:
+    file: /mnt/docker/ymls/elasticsearch.yml
+  kibana:
+    file: /mnt/docker/ymls/kibana.yml
+  logstash:
+    file: /mnt/docker/ymls/logstash.yml
+  logstash-conf:
+    file: /mnt/docker/ymls/logstash.conf
+  snmp-exporter:
+    file: /mnt/docker/ymls/snmp_exporter-config.yml
+  prometheus:
+    file: /mnt/docker/ymls/prometheus-config.yml
+
 volumes:
   grafana:
     driver_opts:
       type: "nfs4"
       o: "addr=$NAS_ADDR,$NAS_MOUNT_PARAMS"
       device: "$NAS_PATH/grafana"
+  
   prometheus:
     driver_opts:
       type: "nfs4"
       o: "addr=$NAS_ADDR,$NAS_MOUNT_PARAMS"
       device: "$NAS_PATH/prometheus"   
+
 #  influxdb-data:
 #    driver_opts:
 #      type: "nfs4"
 #      o: "addr=$NAS_ADDR,$NAS_MOUNT_PARAMS"
 #      device: "$NAS_PATH/influxdb/data"
+
 #  influxdb-config:
 #    driver_opts:
 #      type: "nfs4"
 #      o: "addr=$NAS_ADDR,$NAS_MOUNT_PARAMS"
 #      device: "$NAS_PATH/influxdb/config"
+
   uptime-kuma:
     driver_opts:
       type: "nfs4"
       o: "addr=$NAS_ADDR,$NAS_MOUNT_PARAMS"
       device: "$NAS_PATH/uptime-kuma"
+  
+  elasticsearch:
+    driver_opts:
+      type: "nfs4"
+      o: "addr=$NAS_ADDR,$NAS_MOUNT_PARAMS"
+      device: "$NAS_PATH/elasticsearch"
+  
+  logstash:
+    driver_opts:
+      type: "nfs4"
+      o: "addr=$NAS_ADDR,$NAS_MOUNT_PARAMS"
+      device: "$NAS_PATH/logstash"
+  
+  kibana:
+    driver_opts:
+      type: "nfs4"
+      o: "addr=$NAS_ADDR,$NAS_MOUNT_PARAMS"
+      device: "$NAS_PATH/kibana"
+
+  filebeat:
+    driver_opts:
+      type: "nfs4"
+      o: "addr=$NAS_ADDR,$NAS_MOUNT_PARAMS"
+      device: "$NAS_PATH/filebeat"

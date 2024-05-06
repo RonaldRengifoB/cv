@@ -33,20 +33,6 @@ services:
     networks:
     - monitoring
 
-  promtail:
-    image: grafana/promtail:latest
-    container_name: $PROMTAIL_SERVICE_NAME
-    volumes:
-    - /etc/localtime:/etc/localtime:ro
-    - /etc/timezone:/etc/timezone:ro    
-    - /var/log:/var/log
-    - /mnt/docker/ymls:/etc/promtail
-    command:
-    - '--config.file=/etc/promtail/promtail-config.yml'    
-    networks:
-    - monitoring  
-    restart: always
-
   watchtower:
     image: containrrr/watchtower
     container_name: $WATCHTOWER_SERVICE_NAME
