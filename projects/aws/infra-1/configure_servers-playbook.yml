@@ -1,0 +1,19 @@
+- name: Configure frontend
+  hosts: frontend
+  become: true
+  roles:
+    - frontend
+
+#- name: Configure db
+#  hosts: db
+#  gather_facts: no
+#  become: true
+#  roles:
+#   - db
+
+- name: Configure backend
+  hosts: backend
+  become: true
+  roles:
+    - backend
+

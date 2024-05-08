@@ -1,0 +1,4 @@
+node_app_path: "{{ ansible_env.HOME }}/app"
+
+backend_url: "backend:3000"
+app_port: 3030

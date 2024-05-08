@@ -22,6 +22,12 @@ resource "aws_security_group" "backend" {
   name   = "${local.project.name}-backend-sg"
 }
 
+#Create security group for rds
+resource "aws_security_group" "db" {
+  vpc_id = aws_vpc.vpc.id
+  name   = "${local.project.name}-db-sg"
+}
+
 #Create ingress rules to frontend-lb 
 #from internet
 resource "aws_security_group_rule" "ingress_frontend_lb_http_traffic" {
@@ -37,8 +43,8 @@ resource "aws_security_group_rule" "ingress_frontend_lb_http_traffic" {
 #to frontend http only
 resource "aws_security_group_rule" "egress_frontend_lb_traffic" {
   type                     = "egress"
-  from_port                = 80
-  to_port                  = 80
+  from_port                = 3030
+  to_port                  = 3030
   protocol                 = "tcp"
   security_group_id        = aws_security_group.frontend_lb.id
   source_security_group_id = aws_security_group.frontend.id
@@ -96,12 +102,22 @@ resource "aws_security_group_rule" "egress_admin_ssh_to_backend_traffic" {
   source_security_group_id = aws_security_group.backend.id
 }
 
+#to db
+resource "aws_security_group_rule" "egress_admin_to_db_traffic" {
+  type              = "egress"
+  from_port         = 3306
+  to_port           = 3306
+  protocol          = "tcp"
+  security_group_id = aws_security_group.admin.id
+  source_security_group_id = aws_security_group.db.id
+}
+
 #Create ingress rules to frontend
 #from frontend-lb http only
 resource "aws_security_group_rule" "ingress_frontend_http_traffic" {
   type                     = "ingress"
-  from_port                = 80
-  to_port                  = 80
+  from_port                = 3030
+  to_port                  = 3030
   protocol                 = "tcp"
   security_group_id        = aws_security_group.frontend.id
   source_security_group_id = aws_security_group.frontend_lb.id
@@ -131,8 +147,8 @@ resource "aws_security_group_rule" "egress_frontend_to_internet_traffic" {
 #to backend
 resource "aws_security_group_rule" "egress_frontend_to_backend_traffic" {
   type                      = "egress"
-  from_port                 = 8080
-  to_port                   = 8080
+  from_port                 = 3000
+  to_port                   = 3000
   protocol                  = "tcp"
   security_group_id         = aws_security_group.frontend.id
   source_security_group_id  = aws_security_group.backend.id
@@ -142,8 +158,8 @@ resource "aws_security_group_rule" "egress_frontend_to_backend_traffic" {
 #from frontend http only
 resource "aws_security_group_rule" "ingress_backend_from_frontend_traffic" {
   type                     = "ingress"
-  from_port                = 8080
-  to_port                  = 8080
+  from_port                = 3000
+  to_port                  = 3000
   protocol                 = "tcp"
   security_group_id        = aws_security_group.backend.id
   source_security_group_id = aws_security_group.frontend.id
@@ -168,4 +184,25 @@ resource "aws_security_group_rule" "egress_backend_traffic" {
   protocol          = "-1"
   security_group_id = aws_security_group.backend.id
   cidr_blocks       = ["0.0.0.0/0"]
+}
+
+#Create ingress rules to db
+#from backend sql only
+resource "aws_security_group_rule" "ingress_db_from_backend_traffic" {
+  type                     = "ingress"
+  from_port                = 3306
+  to_port                  = 3306
+  protocol                 = "tcp"
+  security_group_id        = aws_security_group.db.id
+  source_security_group_id = aws_security_group.backend.id
+}
+
+#from admin-sg ssh only
+resource "aws_security_group_rule" "ingress_db_from_admin_traffic" {
+  type                     = "ingress"
+  from_port                = 3306
+  to_port                  = 3306
+  protocol                 = "tcp"
+  security_group_id        = aws_security_group.db.id
+  source_security_group_id = aws_security_group.admin.id
 }

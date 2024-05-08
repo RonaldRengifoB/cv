@@ -1,7 +1,7 @@
 
 resource "aws_lb_target_group" "frontend" {
   name       = "frontend"
-  port       = 80
+  port       = 3030
   protocol   = "HTTP"
   vpc_id     = aws_vpc.vpc.id
   slow_start = 0
@@ -26,7 +26,7 @@ resource "aws_lb_target_group" "frontend" {
 resource "aws_lb_target_group_attachment" "frontend" {
     target_group_arn = aws_lb_target_group.frontend.arn
     target_id        = aws_instance.frontend.id
-    port             = 80
+    port             = 3030
 }
 
 resource "aws_lb" "frontend" {

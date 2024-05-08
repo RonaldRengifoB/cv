@@ -27,7 +27,7 @@ resource "aws_route_table_association" "public_az3" {
 }
 
 #Create private routing table with default nat route
-resource "aws_route_table" "private_az1" {
+resource "aws_route_table" "private" {
   vpc_id = aws_vpc.vpc.id
   route {
     cidr_block     = "0.0.0.0/0"
@@ -40,5 +40,10 @@ resource "aws_route_table" "private_az1" {
 
 resource "aws_route_table_association" "private_az1" {
   subnet_id      = aws_subnet.private_az1.id
-  route_table_id = aws_route_table.private_az1.id
+  route_table_id = aws_route_table.private.id
+}
+
+resource "aws_route_table_association" "private_az2" {
+  subnet_id      = aws_subnet.private_az2.id
+  route_table_id = aws_route_table.private.id
 }

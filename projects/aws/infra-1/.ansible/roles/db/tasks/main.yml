@@ -1,0 +1,31 @@
+#Lines commented are for local testing MySQL server 
+#- name: Update package cache
+#  apt:
+#    update_cache: yes
+
+#- name: Install Packages
+#  apt:
+#    name:
+#      - mariadb-server
+#    state: present
+
+#- name: Copy database dump
+#  copy:
+#    src: database.sql 
+#    dest: /tmp/database.sql
+
+#- name: Ensure MariaDB service is running and enabled
+#  service:
+#    name: mariadb
+#    state: started
+#    enabled: yes
+
+#-  mysql_query:
+#    login_host: "{{ db_host }}"
+#    login_user: "{{ db_user }}"
+#    login_password: "{{ db_pass }}"
+#    login_db: "{{ db_name }}"
+#    query: 
+#    - CREATE TABLE publications (name VARCHAR(250) NOT NULL, avatar VARCHAR(250) NOT NULL, PRIMARY KEY (name))
+#    - CREATE TABLE reviewers (name VARCHAR(255) NOT NULL, publication VARCHAR(250) DEFAULT NULL, avatar VARCHAR(250) NOT NULL, PRIMARY KEY (name))
+#    - CREATE TABLE movies (title VARCHAR(250) NOT NULL, release_year VARCHAR(250) NOT NULL, score INT(11) NOT NULL, reviewer VARCHAR(250) NOT NULL, publication VARCHAR(250) NOT NULL, FOREIGN KEY (reviewer) REFERENCES reviewers(name), FOREIGN KEY (publication) REFERENCES publications(name), PRIMARY KEY (title, release_year))

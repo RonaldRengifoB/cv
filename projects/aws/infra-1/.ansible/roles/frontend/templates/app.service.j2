@@ -1,0 +1,14 @@
+[Unit]
+Description=Node.js Application
+After=network.target
+
+[Service]
+Type=simple
+Environment="BACKEND_URL={{ backend_url }}"
+Environment="PORT={{ app_port }}"
+WorkingDirectory={{ node_app_path }}
+ExecStart=node {{ node_app_path }}/server.js
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
