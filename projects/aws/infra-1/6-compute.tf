@@ -52,6 +52,7 @@ resource "aws_instance" "jumpbox" {
 resource "null_resource" "provision_jumpbox" {
   provisioner "local-exec" {
     command = <<-EOT
+              sleep 20
               scp -i ~/.ssh/dev_aws_terraform -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -r .ansible admin@${aws_instance.jumpbox.public_ip}:~/.ansible
               sleep 10
               scp -i ~/.ssh/dev_aws_terraform -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -r app admin@${aws_instance.jumpbox.public_ip}:~/app

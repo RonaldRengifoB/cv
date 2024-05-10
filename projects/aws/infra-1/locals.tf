@@ -1,20 +1,20 @@
 locals {
     project = {
-        name = "prod-lab"
+        name = terraform.workspace == "prod" ? "prod-lab" : "tests-lab"
     }
     
     provider = {
         profile = "terraform"
-        region  = "us-east-2"
+        region  = terraform.workspace == "prod" ? "us-east-2" : "us-east-1"
     }
     network = {
-        vpc_cidr = "10.1.0.0/16"
-        public_az1_cidr = "10.1.11.0/24"
-        public_az2_cidr = "10.1.12.0/24"
-        public_az3_cidr = "10.1.13.0/24"
-        private_az1_cidr = "10.1.21.0/24"
-        private_az2_cidr = "10.1.22.0/24"
-        private_az3_cidr = "10.1.23.0/24"
+        vpc_cidr = terraform.workspace == "prod" ? "10.1.0.0/16" : "10.0.0.0/16"
+        public_az1_cidr = terraform.workspace == "prod" ? "10.1.11.0/24" : "10.0.11.0/24"
+        public_az2_cidr = terraform.workspace == "prod" ? "10.1.12.0/24" : "10.0.12.0/24"
+        public_az3_cidr = terraform.workspace == "prod" ? "10.1.13.0/24" : "10.0.13.0/24"
+        private_az1_cidr = terraform.workspace == "prod" ? "10.1.21.0/24" : "10.0.21.0/24"
+        private_az2_cidr = terraform.workspace == "prod" ? "10.1.22.0/24" : "10.0.22.0/24"
+        private_az3_cidr = terraform.workspace == "prod" ? "10.1.23.0/24" : "10.0.23.0/24"
     }
     db = {
         name = "nodedb"
@@ -35,22 +35,22 @@ locals {
     ec2 = {
         frontend = {
             machine_type = "t3.micro"
-            ami          = "ami-0ec3d9efceafb89e0" #Debian 12
+            ami          =  terraform.workspace == "prod" ? "ami-0ec3d9efceafb89e0" : "ami-058bd2d568351da34" #Debian 12
         }
 
         backend = {
             machine_type = "t3.micro"
-            ami          = "ami-0ec3d9efceafb89e0" #Debian 12
+            ami          =  terraform.workspace == "prod" ? "ami-0ec3d9efceafb89e0" : "ami-058bd2d568351da34" #Debian 12
         }
 
         gateway = {
             machine_type = "t3.micro"
-            ami          = "ami-056d6c2cc103e038c" #EC2 NAT
+            ami          = terraform.workspace == "prod" ? "ami-056d6c2cc103e038c " : "ami-024cf76afbc833688" #EC2 NAT
         }
 
         jumpbox = {
             machine_type = "t3.micro"
-            ami          = "ami-0ec3d9efceafb89e0" #Debian
+            ami          =  terraform.workspace == "prod" ? "ami-0ec3d9efceafb89e0" : "ami-058bd2d568351da34" #Debian 12
         }
     }
 }

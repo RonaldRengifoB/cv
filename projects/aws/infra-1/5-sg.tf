@@ -47,6 +47,7 @@ resource "aws_security_group_rule" "ingress_lb_frontend_traffic" {
   to_port           = 3000
   protocol          = "tcp"
   security_group_id = aws_security_group.lb.id
+#  cidr_blocks       = [local.network.vpc_cidr]
   cidr_blocks       = ["0.0.0.0/0"]
 #  source_security_group_id = aws_security_group.frontend.id
 }
@@ -166,7 +167,6 @@ resource "aws_security_group_rule" "egress_frontend_to_internet_traffic" {
   cidr_blocks               = ["0.0.0.0/0"]
 }
 
-####CHECK THIS
 #to backend-lb
 resource "aws_security_group_rule" "egress_frontend_to_lb_traffic" {
   type                      = "egress"

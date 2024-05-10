@@ -1,18 +1,1 @@
-scp -i ~/.ssh/dev_aws_terraform -r .ansible admin@3.133.114.215:~/.ansible &&\
-scp -i ~/.ssh/dev_aws_terraform -r app admin@3.133.114.215:~/app &&\
-scp -i ~/.ssh/dev_aws_terraform db/.my.cnf db/db.sql inventory configure_servers-playbook.yml etc/hosts admin@3.133.114.215:~ &&\
-scp -i ~/.ssh/dev_aws_terraform .ssh/config admin@3.133.114.215:~/.ssh/config 
-
-ssh -i ~/.ssh/dev_aws_terraform admin@3.133.114.215
-
-mysql -h db -P 3306 -u dbnodeuser -p
-
-#i know i know
-dbn0d3supers3cr3t
-
-USE nodedb;
-CREATE TABLE publications (name VARCHAR(250) NOT NULL, avatar VARCHAR(250) NOT NULL, PRIMARY KEY (name));
-CREATE TABLE reviewers (name VARCHAR(255) NOT NULL, publication VARCHAR(250) DEFAULT NULL, avatar VARCHAR(250) NOT NULL, PRIMARY KEY (name));
-CREATE TABLE movies (title VARCHAR(250) NOT NULL, release_year VARCHAR(250) NOT NULL, score INT(11) NOT NULL, reviewer VARCHAR(250) NOT NULL, publication VARCHAR(250) NOT NULL, FOREIGN KEY (reviewer) REFERENCES reviewers(name), FOREIGN KEY (publication) REFERENCES publications(name), PRIMARY KEY (title, release_year));
-
 ansible-playbook -i inventory configure_servers-playbook.yml --extra-vars "populate_backend=true"
