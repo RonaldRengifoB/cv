@@ -16,6 +16,7 @@ locals {
         private_az2_cidr = terraform.workspace == "prod" ? "10.1.22.0/24" : "10.0.22.0/24"
         private_az3_cidr = terraform.workspace == "prod" ? "10.1.23.0/24" : "10.0.23.0/24"
     }
+
     db = {
         name = "nodedb"
         username = "dbnodeuser"
@@ -45,7 +46,7 @@ locals {
 
         gateway = {
             machine_type = "t3.micro"
-            ami          = terraform.workspace == "prod" ? "ami-056d6c2cc103e038c " : "ami-024cf76afbc833688" #EC2 NAT
+            ami          = terraform.workspace == "prod" ? "ami-056d6c2cc103e038c" : "ami-024cf76afbc833688" #EC2 NAT
         }
 
         jumpbox = {
