@@ -26,11 +26,6 @@
     path: "{{ node_app_path }}"
     state: latest
 
-- name: Set environment variables
-  set_fact:
-    BACKEND_URL: "{{ backend_url }}"
-    PORT: "{{ app_port }}"
-
 - name: Create systemd service file for the Node.js application
   template:
     src: app.service.j2

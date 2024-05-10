@@ -33,7 +33,7 @@
     DB_USER: "{{ db_user }}"
     DB_PASS: "{{ db_pass }}"
     DB_NAME: "{{ db_name }}"
-    PORT: "3000"
+    PORT: "{{ backend_port }}"
   args:
     chdir: "{{ node_app_path }}"
   when: populate_backend | default(false)

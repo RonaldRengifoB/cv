@@ -8,7 +8,7 @@ Environment="DB_HOST={{ db_host }}"
 Environment="DB_USER={{ db_user }}"
 Environment="DB_PASS={{ db_pass }}"
 Environment="DB_NAME={{ db_name }}"
-Environment="PORT=3000"
+Environment="PORT={{ backend_port }}"
 WorkingDirectory={{ node_app_path }}
 ExecStart=node {{ node_app_path }}/server.js
 Restart=always

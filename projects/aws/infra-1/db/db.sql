@@ -1,3 +1,5 @@
+USE nodedb;
+
 CREATE TABLE publications (
     name VARCHAR(250) NOT NULL,
     avatar VARCHAR(250) NOT NULL,

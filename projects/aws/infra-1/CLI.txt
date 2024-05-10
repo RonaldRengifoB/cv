@@ -1,7 +1,7 @@
 scp -i ~/.ssh/dev_aws_terraform -r .ansible admin@3.133.114.215:~/.ansible &&\
 scp -i ~/.ssh/dev_aws_terraform -r app admin@3.133.114.215:~/app &&\
-scp -i ~/.ssh/dev_aws_terraform -r inventory configure_servers-playbook.yml etc/hosts admin@3.133.114.215:~ &&\
-scp -i ~/.ssh/dev_aws_terraform -r .ssh/config admin@3.133.114.215:~/.ssh/config
+scp -i ~/.ssh/dev_aws_terraform db/.my.cnf db/db.sql inventory configure_servers-playbook.yml etc/hosts admin@3.133.114.215:~ &&\
+scp -i ~/.ssh/dev_aws_terraform .ssh/config admin@3.133.114.215:~/.ssh/config 
 
 ssh -i ~/.ssh/dev_aws_terraform admin@3.133.114.215
 

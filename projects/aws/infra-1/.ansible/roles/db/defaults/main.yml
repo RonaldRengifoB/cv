@@ -1,6 +1,0 @@
-db_host: db
-db_user: dbnodeuser
-#i know i know
-db_pass: dbn0d3supers3cr3t
-db_name: nodedb
-db_port: 3306
