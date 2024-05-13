@@ -202,8 +202,8 @@ services:
     restart: always
 
   elasticsearch:
-    image: elasticsearch:latest
-    container_name: elasticsearch
+    image: elasticsearch:8.13.4
+    container_name: $ELASTICSEARCH_SERVICE_NAME
     ports:
       - "9200:9200"
       - "9300:9300"
@@ -217,65 +217,72 @@ services:
         volume:
           nocopy: true  
     environment:
+      - node.name=es01
       - discovery.type=single-node
       - http.host=0.0.0.0
       - transport.host=0.0.0.0
       - xpack.security.enabled=false
-      - xpack.monitoring.enabled=false
-      - cluster.name=elasticsearch
+      - cluster.name=$ELASTICSEARCH_CLUSTER_NAME
+      - ELASTIC_PASSWORD=$ELASTICSEARCH_PASSWORD
       - bootstrap.memory_lock=true
     networks:
       - monitoring
 
   logstash:
-    image: logstash::latest
-    container_name: logstash
+    image: logstash:8.13.4
+    container_name: $LOGSTASH_SERVICE_NAME
     ports:
       - "5044:5044"
       - "9600:9600"
     configs:
-      - source: logstash
-        target: /usr/share/filebeat/logstash.yml
       - source: logstash-conf
-        target: /usr/share/filebeat/filebeat.conf
+        target: /usr/share/filebeat/logstash.conf
     volumes:
       - type: volume
         source: logstash
         target: /usr/share/logstash/data
         volume:
-          nocopy: true  
+          nocopy: true
+    environment:
+      - xpack.monitoring.enabled=false
+      - ELASTIC_USER=$ELASTICSEARCH_USERNAME
+      - ELASTIC_PASSWORD=$ELASTICSEARCH_PASSWORD
+      - ELASTIC_HOST=http://$ELASTICSEARCH_SERVICE_NAME:9200
     networks:
-      - monnitoring
+      - monitoring
     depends_on:
       - elasticsearch
 
   kibana:
-    image: kibana:latest
-    container_name: kibana
+    image: kibana:8.13.4
+    container_name: $KIBANA_SERVICE_NAME
     ports:
       - "5601:5601"
-    configs:
-      - source: kibana
-        target: /usr/share/kibana/kibana.yml
     volumes:
       - type: volume
         source: kibana
         target: /usr/share/kibana/data
         volume:
-          nocopy: true  
+          nocopy: true
+    environment:
+      - SERVERNAME=$KIBANA_SERVICE_NAME
+      - ELASTICSEARCH_USER=$ELASTICSEARCH_USERNAME
+      - ELASTICSEARCH_PASSWORD=$ELASTICSEARCH_PASSWORD
+      - ELASTICSEARCH_HOST=http://$ELASTICSEARCH_SERVICE_NAME:9200
     networks:
       - monitoring
     depends_on:
       - elasticsearch
 
   filebeat:
-    image: filebea::latest
-    hostname: filebeat
+    image: elastic/filebeat:8.13.4
+    container_name: $FILEBEAT_SERVICE_NAME
     user: root
     configs:
       - source: filebeat
         target: /usr/share/filebeat/filebeat.yml
     volumes:
+      - /filebeat_ingest_data/:/usr/share/filebeat/ingest_data/
       - /var/run/docker.sock:/var/run/docker.sock
       - /var/lib/docker/containers/:/var/lib/docker/containers/:ro
       - /var/log/:/var/log/:ro
@@ -286,14 +293,14 @@ services:
         volume:
           nocopy: true  
     environment:
-      - ELASTICSEARCH_HOST=${ELASTICSEARCH_HOST:-node1}
-      - KIBANA_HOST=${KIBANA_HOST:-node1}
-      - ELASTICSEARCH_USERNAME=${ELASTICSEARCH_USERNAME:-elastic}
-      - ELASTICSEARCH_PASSWORD=${ELASTICSEARCH_PASSWORD:-changeme}
+      - ELASTIC_USER=$ELASTICSEARCH_USERNAME
+      - ELASTIC_PASSWORD=$ELASTICSEARCH_PASSWORD
+      - ELASTIC_HOST=http://$ELASTICSEARCH_SERVICE_NAME:9200
+      - KIBANA_HOST=http://$KIBANA_SERVICE_NAME:5601
+      - LOGSTASH_HOSTS=http://$LOGSTASH_SERVICE_NAME:9600
     command: ["--strict.perms=false"]
     networks:
       - monitoring
-
 
   watchtower:
     image: containrrr/watchtower

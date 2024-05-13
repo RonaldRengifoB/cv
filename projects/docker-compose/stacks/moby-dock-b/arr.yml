@@ -32,96 +32,6 @@ services:
     networks:
       - arr 
 
-  qbittorrent:
-    image: lscr.io/linuxserver/qbittorrent:latest
-    container_name: $QBITTORRENT_SERVICE_NAME
-    environment:
-      - PUID=$PUID
-      - PGID=$PGID
-      - TZ=$TZ
-      - WEBUI_PORT=7070
-    ports:
-      - 6881:6881
-      - 6881:6881/udp
-      - 7070:7070
-#    labels:
-#      - traefik.enable=true 
-#      - traefik.http.routers.$QBITTORRENT_SERVICE_NAME.rule=Host(`$QBITTORRENT_ADDR_NAME.$DOMAIN`)
-#      - traefik.http.routers.$QBITTORRENT_SERVICE_NAME.entrypoints=web
-#      - traefik.http.routers.$QBITTORRENT_SERVICE_NAME-https.rule=Host(`$QBITTORRENT_ADDR_NAME.$DOMAIN`)
-#      - traefik.http.routers.$QBITTORRENT_SERVICE_NAME-https.entrypoints=webs
-#check connectivity with external apps
-#      - traefik.http.routers.$QBITTORRENT_SERVICE_NAME-https.middlewares=$AUTHELIA_SERVICE_NAME@docker 
-#      - traefik.http.routers.$QBITTORRENT_SERVICE_NAME-https.tls=true
-#      - traefik.http.routers.$QBITTORRENT_SERVICE_NAME-https.service=$QBITTORRENT_SERVICE_NAME
-#      - traefik.http.routers.$QBITTORRENT_SERVICE_NAME-https.tls.certresolver=$CERTRESOLVER
-#      - traefik.http.services.$QBITTORRENT_SERVICE_NAME.loadbalancer.server.port=7070
-    volumes:
-      - /etc/localtime:/etc/localtime:ro
-      - /etc/timezone:/etc/timezone:ro
-      - /mnt/data/torrents:/data/torrents
-      - /mnt/download/torrents:/data/torrents/other
-      - type: volume
-        source: qbittorrent
-        target: /config
-        volume:
-          nocopy: true
-    networks:
-      - arr  
-    restart: always
-
-  sabnzbd:
-    image: lscr.io/linuxserver/sabnzbd:latest
-    container_name: $SABNZBD_SERVICE_NAME
-    environment:
-      - PUID=$PUID
-      - PGID=$PGID
-      - TZ=$TZ
-    ports:
-      - 8080:8080
-    volumes:
-      - /etc/localtime:/etc/localtime:ro
-      - /etc/timezone:/etc/timezone:ro
-      - /mnt/data/usenet/complete:/data/usenet/complete
-      - /mnt/data/usenet/incomplete:/data/usenet/incomplete
-      - type: volume
-        source: sabnzbd
-        target: /config
-        volume:
-          nocopy: true
-    
-    restart: always
-    networks:
-      - arr  
-  jdownloader:
-    image: jlesage/jdownloader-2
-    container_name: $JDOWNLOADER_SERVICE_NAME
-    ports:
-      - 5800:5800
-#    labels:
-#      - traefik.enable=true 
-#      - traefik.http.routers.$JDOWNLOADER_SERVICE_NAME.rule=Host(`$JDOWNLOADER_ADDR_NAME.$DOMAIN`)
-#      - traefik.http.routers.$JDOWNLOADER_SERVICE_NAME.entrypoints=web
-#      - traefik.http.routers.$JDOWNLOADER_SERVICE_NAME-https.rule=Host(`$JDOWNLOADER_ADDR_NAME.$DOMAIN`)
-#      - traefik.http.routers.$JDOWNLOADER_SERVICE_NAME-https.entrypoints=webs
-#      - traefik.http.routers.$JDOWNLOADER_SERVICE_NAME-https.middlewares=$AUTHELIA_SERVICE_NAME@docker
-#      - traefik.http.routers.$JDOWNLOADER_SERVICE_NAME-https.tls=true
-#      - traefik.http.routers.$JDOWNLOADER_SERVICE_NAME-https.service=$JDOWNLOADER_SERVICE_NAME
-#      - traefik.http.routers.$JDOWNLOADER_SERVICE_NAME-https.tls.certresolver=$CERTRESOLVER
-#      - traefik.http.services.$JDOWNLOADER_SERVICE_NAME.loadbalancer.server.port=5000
-    volumes:
-        - /etc/localtime:/etc/localtime:ro
-        - /etc/timezone:/etc/timezone:ro
-        - /mnt/download/jdownloader:/output
-        - type: volume
-          source: jdownloader
-          target: /config
-          volume:
-            nocopy: true
-    networks:
-      - arr  
-    restart: always
-
   prowlarr:
     image: lscr.io/linuxserver/prowlarr:develop
     container_name: $PROWLARR_SERVICE_NAME
@@ -362,24 +272,6 @@ volumes:
       type: "nfs4"
       o: "addr=$NAS_ADDR,$NAS_MOUNT_PARAMS"
       device: "$NAS_PATH/heimdall/"
-
-  qbittorrent:
-    driver_opts:
-      type: "nfs4"
-      o: "addr=$NAS_ADDR,$NAS_MOUNT_PARAMS"
-      device: "$NAS_PATH/qbittorrent/"
-
-  sabnzbd:
-    driver_opts:
-      type: "nfs4"
-      o: "addr=$NAS_ADDR,$NAS_MOUNT_PARAMS"
-      device: "$NAS_PATH/sabnzbd/"
-
-  jdownloader:
-    driver_opts:
-      type: "nfs4"
-      o: "addr=$NAS_ADDR,$NAS_MOUNT_PARAMS"
-      device: "$NAS_PATH/jdownloader/"
 
   prowlarr:
     driver_opts:
