@@ -1,36 +1,32 @@
 version: "3.2"
 services:
-  heimdall:
-    image: lscr.io/linuxserver/heimdall:latest
-    container_name: $HEIMDALL_SERVICE_NAME
-    environment:
-      - PUID=$PUID
-      - PGID=$PGID
-    ports:
-      - 443:443
-#    labels:
-#    - traefik.enable=true 
-#    - traefik.http.routers.$HEIMDALL_SERVICE_NAME.rule=Host(`$HEIMDALL_ADDR_NAME.$DOMAIN`)
-#    - traefik.http.routers.$HEIMDALL_SERVICE_NAME.entrypoints=web
-#    - traefik.http.routers.$HEIMDALL_SERVICE_NAME-https.rule=Host(`$HEIMDALL_ADDR_NAME.$DOMAIN`)
-#    - traefik.http.routers.$HEIMDALL_SERVICE_NAME-https.entrypoints=webs
-#    - traefik.http.routers.$HEIMDALL_SERVICE_NAME-https.middlewares=$AUTHELIA_SERVICE_NAME@docker
-#    - traefik.http.routers.$HEIMDALL_SERVICE_NAME-https.tls=true
-#    - traefik.http.routers.$HEIMDALL_SERVICE_NAME-https.service=$HEIMDALL_SERVICE_NAME
-#    - traefik.http.routers.$HEIMDALL_SERVICE_NAME-https.tls.certresolver=$CERTRESOLVER
-#    - traefik.http.services.$HEIMDALL_SERVICE_NAME.loadbalancer.server.port=443
-#    - traefik.http.services.$HEIMDALL_SERVICE_NAME.loadbalancer.server.scheme=https
+  homarr:
+    image: ghcr.io/ajnart/homarr:latest
+    container_name: $HOMEARR_SERVICE_NAME
     volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
       - /etc/localtime:/etc/localtime:ro
       - /etc/timezone:/etc/timezone:ro
       - type: volume
-        source: heimdall
-        target: /config
+        source: homearr-configs
+        target: /app/data/configs
         volume:
           nocopy: true
-    restart: always
+      - type: volume
+        source: homearr-icons
+        target: /app/public/icons
+        volume:
+          nocopy: true
+      - type: volume
+        source: homearr-data
+        target: /data
+        volume:
+          nocopy: true
     networks:
-      - arr 
+      - arr
+    ports:
+      - '7575:7575'
+    restart: unless-stopped
 
   prowlarr:
     image: lscr.io/linuxserver/prowlarr:develop
@@ -38,8 +34,6 @@ services:
     environment:
       - PUID=$PUID
       - PGID=$PGID
-    ports:
-      - 9696:9696
 #    labels:
 #      - traefik.enable=true 
 #      - traefik.http.routers.$PROWLARR_SERVICE_NAME.rule=Host(`$PROWLARR_ADDR_NAME.$DOMAIN`)
@@ -60,7 +54,9 @@ services:
         nocopy: true
     networks:
       - arr
-    restart: always  
+    ports:
+      - 9696:9696
+    restart: unless-stopped  
   
   sonarr:
     image: lscr.io/linuxserver/sonarr:latest
@@ -69,8 +65,6 @@ services:
       - PUID=$PUID
       - PGID=$PGID
       - TZ=$TZ
-    ports:
-      - 8989:8989
 #    labels:
 #      - traefik.enable=true 
 #      - traefik.http.routers.$SONARR_SERVICE_NAME.rule=Host(`$SONARR_ADDR_NAME.$DOMAIN`)
@@ -92,7 +86,9 @@ services:
           nocopy: true
     networks:
       - arr
-    restart: always
+    ports:
+      - 8989:8989
+    restart: unless-stopped
   
   radarr:
     image: lscr.io/linuxserver/radarr:latest
@@ -101,8 +97,6 @@ services:
       - PUID=$PUID
       - PGID=$PGID
       - TZ=$TZ
-    ports:
-      - 7878:7878
 #    labels:
 #      - traefik.enable=true 
 #      - traefik.http.routers.$RADARR_SERVICE_NAME.rule=Host(`$RADARR_ADDR_NAME.$DOMAIN`)
@@ -124,7 +118,9 @@ services:
           nocopy: true
     networks:
       - arr
-    restart: always
+    ports:
+      - 7878:7878
+    restart: unless-stopped
   
   bazarr:
     image: lscr.io/linuxserver/bazarr:latest
@@ -133,8 +129,6 @@ services:
       - PUID=$PUID
       - PGID=$PGID
       - TZ=$TZ
-    ports:
-      - 6767:6767
 #    labels:
 #      - traefik.enable=true 
 #      - traefik.http.routers.$BAZARR_SERVICE_NAME.rule=Host(`$BAZARR_ADDR_NAME.$DOMAIN`)
@@ -156,27 +150,9 @@ services:
           nocopy: true
     networks:
       - arr
-    restart: always
-
-  jellyseerr:
-    image: fallenbagel/jellyseerr:latest
-    container_name: $JELLYSEERR_SERVICE_NAME
-    environment:
-      - LOG_LEVEL=debug
-      - TZ=$TZ
     ports:
-      - 5055:5055
-    volumes:
-      - /etc/localtime:/etc/localtime:ro
-      - /mnt/data/torrents:/data/torrents
-      - type: volume
-        source: jellyseerr
-        target: /app/config
-        volume:
-          nocopy: true
-    networks:
-      - arr 
-    restart: always
+      - 6767:6767
+    restart: unless-stopped
 
   qbitrr:
     image: feramance/qbitrr:latest
@@ -192,9 +168,10 @@ services:
         target: /config
         volume:
           nocopy: true
-    restart: always
     networks:
       - arr
+    restart: unless-stopped
+
 
   flaresolverr:
     image: ghcr.io/flaresolverr/flaresolverr:latest
@@ -207,16 +184,16 @@ services:
     volumes:
       - /etc/localtime:/etc/localtime:ro
       - /etc/timezone:/etc/timezone:ro
-    ports:
-      - 8191:8191
     networks:
       - arr
-    restart: always
+    ports:
+      - 8191:8191
+    restart: unless-stopped
 
   autobrr:
     container_name: $AUTOBRR_SERVICE_NAME
     image: ghcr.io/autobrr/autobrr:latest
-    user: 1000:1000
+    user: $PUID:$PGID
     environment:
       - TZ=$TZ
       - AUTOBRR__DATABASE_TYPE=$AUTOBRR_DATABASE_TYPE
@@ -233,18 +210,16 @@ services:
         target: /config
         volume:
           nocopy: true
-    ports:
-      - 7474:7474
     networks:
       - arr
-    restart: always
+    ports:
+      - 7474:7474
+    restart: unless-stopped
 
   omegabrr:
     container_name: $OMEGABRR_SERVICE_NAME
     image: ghcr.io/autobrr/omegabrr:latest
-    ports:
-      - 7441:7441
-    user: 1000:1000
+    user: $PUID:$PGID
     volumes:
       - /etc/localtime:/etc/localtime:ro
       - /etc/timezone:/etc/timezone:ro
@@ -255,7 +230,9 @@ services:
           nocopy: true
     networks:
       - arr
-    restart: always
+    ports:
+      - 7441:7441
+    restart: unless-stopped
 
 networks:
   arr:
@@ -267,12 +244,6 @@ networks:
           gateway: $ARR_GW
 
 volumes:
-  heimdall:
-    driver_opts:
-      type: "nfs4"
-      o: "addr=$NAS_ADDR,$NAS_MOUNT_PARAMS"
-      device: "$NAS_PATH/heimdall/"
-
   prowlarr:
     driver_opts:
       type: "nfs4"
@@ -303,12 +274,6 @@ volumes:
       o: "addr=$NAS_ADDR,$NAS_MOUNT_PARAMS"
       device: "$NAS_PATH/qbitrr"
 
-  jellyseerr:
-    driver_opts:
-      type: "nfs4"
-      o: "addr=$NAS_ADDR,$NAS_MOUNT_PARAMS"
-      device: "$NAS_PATH/jellyseerr"
-
   autobrr:
     driver_opts:
       type: "nfs4"
@@ -320,3 +285,21 @@ volumes:
       type: "nfs4"
       o: "addr=$NAS_ADDR,$NAS_MOUNT_PARAMS"
       device: "$NAS_PATH/omegabrr"
+
+  homearr-configs:
+    driver_opts:
+      type: "nfs4"
+      o: "addr=$NAS_ADDR,$NAS_MOUNT_PARAMS"
+      device: "$NAS_PATH/homearr/configs/"
+
+  homearr-icons:
+    driver_opts:
+      type: "nfs4"
+      o: "addr=$NAS_ADDR,$NAS_MOUNT_PARAMS"
+      device: "$NAS_PATH/homearr/icons/"
+
+  homearr-data:
+    driver_opts:
+      type: "nfs4"
+      o: "addr=$NAS_ADDR,$NAS_MOUNT_PARAMS"
+      device: "$NAS_PATH/homearr/data/"

@@ -16,9 +16,9 @@ services:
 #        target: /data/db
 #        volume:
 #          nocopy: true  
-#    restart: always
 #    networks:
 #      - apps 
+#    restart: unless-stopped
 
   mongo-express:
     image: mongo-express
@@ -29,8 +29,6 @@ services:
       ME_CONFIG_MONGODB_SERVER: $MONGO_SERVER
       ME_CONFIG_BASICAUTH_USERNAME: $ME_CONFIG_BASICAUTH_USERNAME
       ME_CONFIG_BASICAUTH_PASSWORD: $ME_CONFIG_BASICAUTH_PASSWORD
-    ports:
-      - 8081:8081
 #    labels:
 #    - traefik.enable=true 
 #    - traefik.http.routers.$ME_MONGO_SERVICE_NAME.rule=Host(`$ME_MONGO_ADDR_NAME.$DOMAIN`)
@@ -45,9 +43,11 @@ services:
     volumes:
     - /etc/localtime:/etc/localtime:ro
     - /etc/timezone:/etc/timezone:ro
-    restart: always
     networks:
       - apps 
+    ports:
+      - 8081:8081
+    restart: unless-stopped
 
 networks:
   apps:

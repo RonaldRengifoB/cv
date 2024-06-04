@@ -4,7 +4,7 @@ services:
   grafana:
     image: grafana/grafana-oss:latest
     container_name: $GRAFANA_SERVICE_NAME
-    restart: always
+    restart: unless-stopped
     user: $PUID #uid for axl  
     environment:
     - GF_SERVER_DOMAIN=$GRAFANA_ADDR_NAME.$DOMAIN
@@ -35,7 +35,7 @@ services:
   prometheus:
     image: prom/prometheus:latest
     container_name: $PROMETHEUS_SERVICE_NAME
-    restart: always
+    restart: unless-stopped
     ports:
     - 9090:9090
 #    labels:
@@ -71,7 +71,7 @@ services:
   node_exporter:
     image: quay.io/prometheus/node-exporter:latest
     container_name: $NODE_EXPORTER_SERVICE_NAME
-    restart: always
+    restart: unless-stopped
     ports:
       - 9100:9100
     command:
@@ -87,7 +87,7 @@ services:
   snmp_exporter:
     image: prom/snmp-exporter
     container_name: $SNMP_EXPORTER_SERVICE_NAME
-    restart: always
+    restart: unless-stopped
     configs:
       - source: snmp-exporter
         target: /etc/snmp_exporter/snmp_exporter-config.yml
@@ -104,7 +104,7 @@ services:
   cadvisor:
     image: gcr.io/cadvisor/cadvisor:latest
     container_name: $CADVISOR_SERVICE_NAME
-    restart: always
+    restart: unless-stopped
     ports:
     - 9101:8080
     volumes:
@@ -148,7 +148,7 @@ services:
 #          nocopy: true    
 #    networks:
 #    - monitoring
-#    restart: always
+#    restart: unless-stopped
   
   uptimekuma:
     image: louislam/uptime-kuma:latest
@@ -178,7 +178,7 @@ services:
           nocopy: true  
     networks:
     - monitoring  
-    restart: always
+    restart: unless-stopped
 
   unifipoller:
     image: ghcr.io/unpoller/unpoller:latest
@@ -199,7 +199,7 @@ services:
     - /etc/timezone:/etc/timezone:ro
     networks:
       - monitoring  
-    restart: always
+    restart: unless-stopped
 
   elasticsearch:
     image: elasticsearch:8.13.4
@@ -322,7 +322,7 @@ services:
     - /var/run/docker.sock:/var/run/docker.sock
     networks:
       - monitoring  
-    restart: always
+    restart: unless-stopped
 
 networks:
   monitoring:

@@ -23,16 +23,6 @@ services:
         target: /config
         volume:
           nocopy: true        
-    ports:
-      - 8443:8443
-      - 3478:3478/udp
-      - 10001:10001/udp
-      - 8080:8080
-      - 6789:6789 #Mobile throughput test
-      - 1900:1900/udp #Required for Make controller discoverable on L2 network option
-      - 8843:8843 #Unifi guest portal HTTPS redirect port
-      - 8880:8880 #Unifi guest portal HTTP redirect port
-      - 5514:5514/udp #syslog report
 #    labels:
 #    - com.centurylinklabs.watchtower.monitor-only="true"
 #    - traefik.enable=true 
@@ -46,8 +36,18 @@ services:
 #    - traefik.http.services.$UNIFI_SERVICE_NAME.loadbalancer.server.port=8443
 #    - traefik.http.services.$UNIFI_SERVICE_NAME.loadbalancer.server.scheme=https
     networks:
-      - apps  
-    restart: always
+      - apps 
+    ports:
+      - 8443:8443
+      - 3478:3478/udp
+      - 10001:10001/udp
+      - 8080:8080
+      - 6789:6789 #Mobile throughput test
+      - 1900:1900/udp #Required for Make controller discoverable on L2 network option
+      - 8843:8843 #Unifi guest portal HTTPS redirect port
+      - 8880:8880 #Unifi guest portal HTTP redirect port
+      - 5514:5514/udp #syslog report
+    restart: unless-stopped
 
 networks:
   apps:

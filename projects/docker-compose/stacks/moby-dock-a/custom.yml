@@ -4,8 +4,7 @@ services:
 #pending change to custom ansible-jenkins image
     image: jenkins/jenkins 
     container_name: $JENKINS_SERVICE_NAME
-    ports:
-      - 8080:8080
+
 #    labels:
 #      - traefik.enable=true 
 #      - traefik.http.routers.$JENKINS_SERVICE_NAME.rule=Host(`$JENKINS_ADDR_NAME.$DOMAIN`)
@@ -25,9 +24,11 @@ services:
         target: /var/jenkins_home
         volume:
           nocopy: true  
-    restart: always
     networks:
       - apps
+    ports:
+      - 8080:8080
+    restart: unless-stopped
 
 networks:
   apps:

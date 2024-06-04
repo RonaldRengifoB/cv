@@ -4,9 +4,6 @@ services:
   node_exporter:
     image: quay.io/prometheus/node-exporter:latest
     container_name: $NODE_EXPORTER_SERVICE_NAME
-    restart: always
-    ports:
-      - 9100:9100
     command:
     - '--path.rootfs=/host'
     pid: host
@@ -15,14 +12,14 @@ services:
     - /etc/localtime:/etc/localtime:ro
     - /etc/timezone:/etc/timezone:ro    
     networks:
-    - monitoring  
+    - monitoring 
+    ports:
+      - 9100:9100
+    restart: unless-stopped
 
   cadvisor:
     image: gcr.io/cadvisor/cadvisor:latest
     container_name: $CADVISOR_SERVICE_NAME
-    restart: always
-    ports:
-    - 9101:8080
     volumes:
     - /etc/localtime:/etc/localtime:ro
     - /etc/timezone:/etc/timezone:ro    
@@ -32,6 +29,9 @@ services:
     - /var/lib/docker/:/var/lib/docker:ro
     networks:
     - monitoring
+    ports:
+    - 9101:8080
+    restart: unless-stopped
 
   watchtower:
     image: containrrr/watchtower
@@ -53,7 +53,7 @@ services:
     - /var/run/docker.sock:/var/run/docker.sock
     networks:
       - monitoring  
-    restart: always
+    restart: unless-stopped
 
 networks:
   monitoring:

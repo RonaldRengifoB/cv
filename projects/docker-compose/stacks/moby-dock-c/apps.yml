@@ -3,23 +3,21 @@ services:
   zabbix-proxy:
     image: zabbix/zabbix-proxy-sqlite3:latest
     container_name: $ZABBIX_PROXY_SERVICE_NAME
-    ports:
-    - 10456:10051
     environment:
     - ZBX_SERVER_HOST=$ZABBIX_SERVER_SERVICE_NAME
     - ZBX_HOSTNAME=$ZABBIX_PROXY_SERVICE_NAME
     volumes:
     - /etc/localtime:/etc/localtime:ro
     - /etc/timezone:/etc/timezone:ro
-    restart: always
     networks:
       - apps
+    ports:
+    - 10456:10051
+    restart: unless-stopped
 
   minecraft:
     image: itzg/minecraft-bedrock-server:latest
     container_name: $MINECRAFT_SERVICE_NAME
-    ports:
-      - 19132:19132/udp
     environment:
       EULA: "TRUE"
       ALLOW_LIST_USERS: $MINECRAFT_ALLOW_LIST
@@ -37,7 +35,9 @@ services:
 #        nocopy: true
     networks:
       - apps
-    restart: always
+    ports:
+      - 19132:19132/udp
+    restart: unless-stopped
 
 networks:
   apps:
