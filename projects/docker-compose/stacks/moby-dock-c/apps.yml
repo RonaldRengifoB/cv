@@ -28,6 +28,7 @@ services:
     - /etc/localtime:/etc/localtime:ro
     - /etc/timezone:/etc/timezone:ro
     - /store/minecraft:/data
+#Using local storage instead of remote for performance reasons
 #    - type: volume
 #      source: minecraft
 #      target: /data

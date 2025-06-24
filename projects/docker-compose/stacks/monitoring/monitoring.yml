@@ -11,6 +11,7 @@ services:
     - GF_INSTALL_PLUGINS=grafana-clock-panel,yesoreyeram-infinity-datasource 
     ports:
     - 3000:3000
+#Container access controlled by traefik file 
 #    labels:
 #    - traefik.enable=true 
 #    - traefik.http.routers.$GRAFANA_SERVICE_NAME.rule=Host(`$GRAFANA_ADDR_NAME.$DOMAIN`)
@@ -38,6 +39,7 @@ services:
     restart: unless-stopped
     ports:
     - 9090:9090
+#Container access controlled by traefik file 
 #    labels:
 #    - traefik.enable=true 
 #    - traefik.http.routers.$PROMETHEUS_SERVICE_NAME.rule=Host(`$PROMETHEUS_ADDR_NAME.$DOMAIN`)
@@ -117,6 +119,7 @@ services:
     networks:
     - monitoring
 
+#Disabled - this container is running in sonne
 #  influxdb:
 #    container_name: $INFLUXDB_SERVICE_NAME
 #    image: influxdb:2.1-alpine
@@ -158,6 +161,7 @@ services:
     - PGID=$PGID
     ports:
     - "3001:3001"
+#Container access controlled by traefik file 
 #    labels:
 #    - traefik.enable=true 
 #    - traefik.http.routers.$UPTIMEKUMA_SERVICE_NAME.rule=Host(`$UPTIMEKUMA_ADDR_NAME.$DOMAIN`)
@@ -362,12 +366,14 @@ volumes:
       o: "addr=$NAS_ADDR,$NAS_MOUNT_PARAMS"
       device: "$NAS_PATH/prometheus"   
 
+#DB storage is now directly in sonne
 #  influxdb-data:
 #    driver_opts:
 #      type: "nfs4"
 #      o: "addr=$NAS_ADDR,$NAS_MOUNT_PARAMS"
 #      device: "$NAS_PATH/influxdb/data"
 
+#DB storage is now directly in sonne
 #  influxdb-config:
 #    driver_opts:
 #      type: "nfs4"

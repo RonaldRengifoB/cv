@@ -34,6 +34,7 @@ services:
     environment:
       - PUID=$PUID
       - PGID=$PGID
+#Container access controlled by traefik file 
 #    labels:
 #      - traefik.enable=true 
 #      - traefik.http.routers.$PROWLARR_SERVICE_NAME.rule=Host(`$PROWLARR_ADDR_NAME.$DOMAIN`)
@@ -65,6 +66,7 @@ services:
       - PUID=$PUID
       - PGID=$PGID
       - TZ=$TZ
+#Container access controlled by traefik file 
 #    labels:
 #      - traefik.enable=true 
 #      - traefik.http.routers.$SONARR_SERVICE_NAME.rule=Host(`$SONARR_ADDR_NAME.$DOMAIN`)
@@ -97,6 +99,7 @@ services:
       - PUID=$PUID
       - PGID=$PGID
       - TZ=$TZ
+#Container access controlled by traefik file 
 #    labels:
 #      - traefik.enable=true 
 #      - traefik.http.routers.$RADARR_SERVICE_NAME.rule=Host(`$RADARR_ADDR_NAME.$DOMAIN`)
@@ -129,6 +132,7 @@ services:
       - PUID=$PUID
       - PGID=$PGID
       - TZ=$TZ
+#Container access controlled by traefik file 
 #    labels:
 #      - traefik.enable=true 
 #      - traefik.http.routers.$BAZARR_SERVICE_NAME.rule=Host(`$BAZARR_ADDR_NAME.$DOMAIN`)
@@ -196,12 +200,12 @@ services:
     user: $PUID:$PGID
     environment:
       - TZ=$TZ
-      - AUTOBRR__DATABASE_TYPE=$AUTOBRR_DATABASE_TYPE
-      - AUTOBRR__POSTGRES_HOST=$AUTOBRR_POSTGRES_HOST
-      - AUTOBRR__POSTGRES_PORT=$AUTOBRR_POSTGRES_PORT
-      - AUTOBRR__POSTGRES_DATABASE=$AUTOBRR_POSTGRES_DATABASE
-      - AUTOBRR__POSTGRES_USER=$AUTOBRR_POSTGRES_USER
-      - AUTOBRR__POSTGRES_PASS=$AUTOBRR_POSTGRES_PASS
+      - AUTOBRR_DATABASE_TYPE=$AUTOBRR_DATABASE_TYPE
+      - AUTOBRR_POSTGRES_HOST=$AUTOBRR_POSTGRES_HOST
+      - AUTOBRR_POSTGRES_PORT=$AUTOBRR_POSTGRES_PORT
+      - AUTOBRR_POSTGRES_DATABASE=$AUTOBRR_POSTGRES_DATABASE
+      - AUTOBRR_POSTGRES_USER=$AUTOBRR_POSTGRES_USER
+      - AUTOBRR_POSTGRES_PASS=$AUTOBRR_POSTGRES_PASS
     volumes:
       - /etc/localtime:/etc/localtime:ro
       - /etc/timezone:/etc/timezone:ro
