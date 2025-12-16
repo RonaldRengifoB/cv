@@ -15,31 +15,6 @@ services:
     - 10456:10051
     restart: unless-stopped
 
-  minecraft:
-    image: itzg/minecraft-bedrock-server:latest
-    container_name: $MINECRAFT_SERVICE_NAME
-    environment:
-      EULA: "TRUE"
-      ALLOW_LIST_USERS: $MINECRAFT_ALLOW_LIST
-      OPS: $MINECRAFT_OPS
-      MEMBERS: $MINECRAFT_MEMBERS
-      ONLINE_MODE: true
-    volumes:
-    - /etc/localtime:/etc/localtime:ro
-    - /etc/timezone:/etc/timezone:ro
-    - /store/minecraft:/data
-#Using local storage instead of remote for performance reasons
-#    - type: volume
-#      source: minecraft
-#      target: /data
-#      volume:
-#        nocopy: true
-    networks:
-      - apps
-    ports:
-      - 19132:19132/udp
-    restart: unless-stopped
-
 networks:
   apps:
     name: apps

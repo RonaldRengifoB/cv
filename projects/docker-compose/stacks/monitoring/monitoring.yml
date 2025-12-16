@@ -205,107 +205,6 @@ services:
       - monitoring  
     restart: unless-stopped
 
-  elasticsearch:
-    image: elasticsearch:8.13.4
-    container_name: $ELASTICSEARCH_SERVICE_NAME
-    ports:
-      - "9200:9200"
-      - "9300:9300"
-    configs:
-      - source: elasticsearch
-        target: /usr/share/elasticsearch/elasticsearch.yml
-    volumes:
-      - type: volume
-        source: elasticsearch
-        target: /usr/share/elasticsearch/data/
-        volume:
-          nocopy: true  
-    environment:
-      - node.name=es01
-      - discovery.type=single-node
-      - http.host=0.0.0.0
-      - transport.host=0.0.0.0
-      - xpack.security.enabled=false
-      - cluster.name=$ELASTICSEARCH_CLUSTER_NAME
-      - ELASTIC_PASSWORD=$ELASTICSEARCH_PASSWORD
-      - bootstrap.memory_lock=true
-    networks:
-      - monitoring
-
-  logstash:
-    image: logstash:8.13.4
-    container_name: $LOGSTASH_SERVICE_NAME
-    ports:
-      - "5044:5044"
-      - "9600:9600"
-    configs:
-      - source: logstash-conf
-        target: /usr/share/filebeat/logstash.conf
-    volumes:
-      - type: volume
-        source: logstash
-        target: /usr/share/logstash/data
-        volume:
-          nocopy: true
-    environment:
-      - xpack.monitoring.enabled=false
-      - ELASTIC_USER=$ELASTICSEARCH_USERNAME
-      - ELASTIC_PASSWORD=$ELASTICSEARCH_PASSWORD
-      - ELASTIC_HOST=http://$ELASTICSEARCH_SERVICE_NAME:9200
-    networks:
-      - monitoring
-    depends_on:
-      - elasticsearch
-
-  kibana:
-    image: kibana:8.13.4
-    container_name: $KIBANA_SERVICE_NAME
-    ports:
-      - "5601:5601"
-    volumes:
-      - type: volume
-        source: kibana
-        target: /usr/share/kibana/data
-        volume:
-          nocopy: true
-    environment:
-      - SERVERNAME=$KIBANA_SERVICE_NAME
-      - ELASTICSEARCH_USER=$ELASTICSEARCH_USERNAME
-      - ELASTICSEARCH_PASSWORD=$ELASTICSEARCH_PASSWORD
-      - ELASTICSEARCH_HOST=http://$ELASTICSEARCH_SERVICE_NAME:9200
-    networks:
-      - monitoring
-    depends_on:
-      - elasticsearch
-
-  filebeat:
-    image: elastic/filebeat:8.13.4
-    container_name: $FILEBEAT_SERVICE_NAME
-    user: root
-    configs:
-      - source: filebeat
-        target: /usr/share/filebeat/filebeat.yml
-    volumes:
-      - /filebeat_ingest_data/:/usr/share/filebeat/ingest_data/
-      - /var/run/docker.sock:/var/run/docker.sock
-      - /var/lib/docker/containers/:/var/lib/docker/containers/:ro
-      - /var/log/:/var/log/:ro
-      - /var/log/audit/:/var/log/audit/:ro
-      - type: volume
-        source: filebeat
-        target: /usr/share/filebeat/data
-        volume:
-          nocopy: true  
-    environment:
-      - ELASTIC_USER=$ELASTICSEARCH_USERNAME
-      - ELASTIC_PASSWORD=$ELASTICSEARCH_PASSWORD
-      - ELASTIC_HOST=http://$ELASTICSEARCH_SERVICE_NAME:9200
-      - KIBANA_HOST=http://$KIBANA_SERVICE_NAME:5601
-      - LOGSTASH_HOSTS=http://$LOGSTASH_SERVICE_NAME:9600
-    command: ["--strict.perms=false"]
-    networks:
-      - monitoring
-
   watchtower:
     image: containrrr/watchtower
     container_name: $WATCHTOWER_SERVICE_NAME
@@ -338,16 +237,6 @@ networks:
           gateway: $MONITORING_GW
 
 configs:
-  filebeat:
-    file: /mnt/docker/ymls/filebeat.yml
-  elasticsearch:
-    file: /mnt/docker/ymls/elasticsearch.yml
-  kibana:
-    file: /mnt/docker/ymls/kibana.yml
-  logstash:
-    file: /mnt/docker/ymls/logstash.yml
-  logstash-conf:
-    file: /mnt/docker/ymls/logstash.conf
   snmp-exporter:
     file: /mnt/docker/ymls/snmp_exporter-config.yml
   prometheus:
@@ -385,27 +274,3 @@ volumes:
       type: "nfs4"
       o: "addr=$NAS_ADDR,$NAS_MOUNT_PARAMS"
       device: "$NAS_PATH/uptime-kuma"
-  
-  elasticsearch:
-    driver_opts:
-      type: "nfs4"
-      o: "addr=$NAS_ADDR,$NAS_MOUNT_PARAMS"
-      device: "$NAS_PATH/elasticsearch"
-  
-  logstash:
-    driver_opts:
-      type: "nfs4"
-      o: "addr=$NAS_ADDR,$NAS_MOUNT_PARAMS"
-      device: "$NAS_PATH/logstash"
-  
-  kibana:
-    driver_opts:
-      type: "nfs4"
-      o: "addr=$NAS_ADDR,$NAS_MOUNT_PARAMS"
-      device: "$NAS_PATH/kibana"
-
-  filebeat:
-    driver_opts:
-      type: "nfs4"
-      o: "addr=$NAS_ADDR,$NAS_MOUNT_PARAMS"
-      device: "$NAS_PATH/filebeat"
