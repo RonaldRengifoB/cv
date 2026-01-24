@@ -206,7 +206,7 @@ services:
     restart: unless-stopped
 
   watchtower:
-    image: containrrr/watchtower
+    image: nickfedor/watchtower:latest
     container_name: $WATCHTOWER_SERVICE_NAME
     environment:
     - WATCHTOWER_NOTIFICATIONS=$WATCHTOWER_NOTIFICATIONS
