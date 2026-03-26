@@ -49,7 +49,7 @@ networks:
           gateway: $IA_APPS_GW
 
 volumes:
-  n8n_storage:
+  n8n:
     driver_opts:
       type: "nfs4"
       o: "addr=$NAS_ADDR,$NAS_MOUNT_PARAMS"
