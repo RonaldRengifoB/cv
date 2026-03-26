@@ -1,25 +1,45 @@
-version: "3.2"
+version: '3.8'
 services:
-  thelounge:
-    image: lscr.io/linuxserver/thelounge:latest
-    container_name: $LOUNGE_SERVICE_NAME
+  n8n:
+    image: docker.n8n.io/n8nio/n8n:latest
+    container_name: $N8N_SERVICE_NAME
+    restart: unless-stopped
     environment:
-      - PUID=$PUID
-      - PGID=$PGID
-      - TZ=$TZ
+      - DB_TYPE=$N8N_DB_TYPE
+      - DB_POSTGRESDB_HOST=$N8N_DB_HOST
+      - DB_POSTGRESDB_PORT=$N8N_DB_PORT
+      - DB_POSTGRESDB_DATABASE=$N8N_DB_DB
+      - DB_POSTGRESDB_USER=$N8N_DB_USER
+      - DB_POSTGRESDB_PASSWORD=$N8N_DB_PASSWORD
+      - N8N_RUNNERS_MODE=$N8N_RUNNERS_MODE
+      - N8N_RUNNERS_AUTH_TOKEN=$N8N_RUNNERS_AUTH_TOKEN
+      - N8N_RUNNERS_BROKER_LISTEN_ADDRESS=$N8N_RUNNERS_BROKER_LISTEN_ADDRESS
+    ports:
+      - 5678:5678
+    links:
+      - postgres
     volumes:
       - /etc/localtime:/etc/localtime:ro
       - /etc/timezone:/etc/timezone:ro
       - type: volume
-        source: lounge
-        target: /config
+        source: n8n
+        target: /home/node/.n8n
         volume:
           nocopy: true   
     networks:
       - ia_apps  
-    ports:
-      - 9000:9000
+
+  n8n-runner:
+    image: n8nio/runners:latest
+    container_name: $N8N_RUNNER_SERVICE_NAME
     restart: unless-stopped
+    environment:
+      - N8N_RUNNERS_AUTH_TOKEN=$N8N_RUNNERS_AUTH_TOKEN
+      - N8N_RUNNERS_TASK_BROKER_URI=$N8N_RUNNERS_TASK_BROKER_URI
+    depends_on:
+      - n8n
+    networks:
+      - ia_apps  
 
 networks:
   ia_apps:
@@ -31,8 +51,8 @@ networks:
           gateway: $IA_APPS_GW
 
 volumes:
-  lounge:
+  n8n_storage:
     driver_opts:
       type: "nfs4"
       o: "addr=$NAS_ADDR,$NAS_MOUNT_PARAMS"
-      device: "$NAS_PATH/lounge/"
+      device: "$NAS_PATH/n8n/"
