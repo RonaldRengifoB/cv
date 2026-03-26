@@ -31,8 +31,8 @@ networks:
           gateway: $IA_APPS_GW
 
 volumes:
-  shlink:
+  lounge:
     driver_opts:
       type: "nfs4"
       o: "addr=$NAS_ADDR,$NAS_MOUNT_PARAMS"
-      device: "$NAS_PATH/shlink/"
+      device: "$NAS_PATH/lounge/"
