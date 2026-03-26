@@ -22,8 +22,8 @@ services:
     restart: unless-stopped
 
 networks:
-  internalapps:
-    name: internalapps
+  ia_apps:
+    name: ia_apps
     ipam:
       driver: default
       config:
