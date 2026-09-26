@@ -154,11 +154,12 @@ services:
 #    restart: unless-stopped
   
   uptimekuma:
-    image: louislam/uptime-kuma:latest
+    image: louislam/uptime-kuma:2
     container_name: $UPTIMEKUMA_SERVICE_NAME
     environment:
     - PUID=$PUID
     - PGID=$PGID
+    - TZ=$TZ
     ports:
     - "3001:3001"
 #Container access controlled by traefik file 
