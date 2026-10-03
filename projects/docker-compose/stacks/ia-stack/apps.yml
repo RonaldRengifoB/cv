@@ -10,10 +10,12 @@ services:
       - PAPERCLIP_HOME=/paperclip
       - PAPERCLIP_DEPLOYMENT_MODE=authenticated
       - PAPERCLIP_DEPLOYMENT_EXPOSURE=public
+      - PAPERCLIP_AUTH_DISABLE_SIGN_UP=false
+      - PAPERCLIP_ALLOWED_HOSTNAMES=localhost
       - PAPERCLIP_PUBLIC_URL=$PAPERCLIP_PUBLIC_URL
       - DATABASE_URL=$DATABASE_URL
       - BETTER_AUTH_SECRET=$BETTER_AUTH_SECRET
-      - PAPERCLIP_AUTH_DISABLE_SIGN_UP=false
+ 
     volumes:
       - /etc/localtime:/etc/localtime:ro
       - type: volume
