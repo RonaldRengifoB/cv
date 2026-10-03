@@ -7,6 +7,7 @@ services:
       - PUID=$PUID
       - PGID=$PGID
       - TZ=$TZ
+      - BETTER_AUTH_SECRET=$BETTER_AUTH_SECRET
       - PAPERCLIP_HOME=/paperclip
       - PAPERCLIP_DEPLOYMENT_MODE=authenticated
       - PAPERCLIP_DEPLOYMENT_EXPOSURE=public
@@ -14,8 +15,6 @@ services:
       - PAPERCLIP_ALLOWED_HOSTNAMES=localhost
       - PAPERCLIP_PUBLIC_URL=$PAPERCLIP_PUBLIC_URL
       - DATABASE_URL=$DATABASE_URL
-      - BETTER_AUTH_SECRET=$BETTER_AUTH_SECRET
- 
     volumes:
       - /etc/localtime:/etc/localtime:ro
       - type: volume
