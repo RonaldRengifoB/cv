@@ -11,6 +11,7 @@ services:
       - PAPERCLIP_HOME=/paperclip
       - PAPERCLIP_DEPLOYMENT_MODE=authenticated
       - PAPERCLIP_DEPLOYMENT_EXPOSURE=public
+      - PAPERCLIP_AUTH_BASE_URL_MODE=explicit
       - PAPERCLIP_PUBLIC_URL=$PAPERCLIP_PUBLIC_URL
       - DATABASE_URL=$DATABASE_URL
     volumes:
