@@ -15,6 +15,7 @@ services:
       - DATABASE_URL=$DATABASE_URL
     volumes:
       - /etc/localtime:/etc/localtime:ro
+      - ~/.codex:/home/node/.codex:ro
       - type: volume
         source: paperclip
         target: /paperclip
