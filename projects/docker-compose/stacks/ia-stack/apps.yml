@@ -27,8 +27,9 @@ services:
       - ia_apps  
     ports:
       - 3100:3100
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     restart: unless-stopped
-
 
 networks:
   ia_apps:
