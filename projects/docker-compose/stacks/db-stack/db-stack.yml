@@ -18,7 +18,12 @@ services:
 #      - internalapps
 #    ports:
 #    - 3306:3306
-#    restart: unless-stopped
+#        restart: unless-stopped
+#        deploy:
+#          restart_policy:
+#            condition: on-failure
+#            delay: 60s 
+#            max_attempts: 10  
 
 #Disabled - this container is running in sonne
 #  pgsql:
@@ -41,7 +46,12 @@ services:
 #          nocopy: true  
 #    networks:
 #      - internalapps
-#    restart: unless-stopped          
+#        restart: unless-stopped
+#        deploy:
+#          restart_policy:
+#            condition: on-failure
+#            delay: 60s 
+#            max_attempts: 10            
 
 #Disabled - this container is running in sonne
 #  mongo:
@@ -61,7 +71,12 @@ services:
 #          nocopy: true  
 #    networks:
 #      - apps 
-#    restart: unless-stopped
+#        restart: unless-stopped
+#    deploy:
+#      restart_policy:
+#        condition: on-failure
+#        delay: 60s 
+#        max_attempts: 10  
 
   mongo-express:
     image: mongo-express
@@ -91,6 +106,11 @@ services:
     ports:
       - 8081:8081
     restart: unless-stopped
+    deploy:
+      restart_policy:
+        condition: on-failure
+        delay: 60s 
+        max_attempts: 10  
 
   phpmyadmin:
     image: lscr.io/linuxserver/phpmyadmin:latest
@@ -124,7 +144,12 @@ services:
       - dbapps
     ports: 
     - 8881:80
-    restart: unless-stopped  
+    restart: unless-stopped
+    deploy:
+      restart_policy:
+        condition: on-failure
+        delay: 60s 
+        max_attempts: 10    
 
   phppgadmin:
     image: dpage/pgadmin4:latest
@@ -156,7 +181,12 @@ services:
       - dbapps
     ports: 
     - 8887:80
-    restart: unless-stopped  
+    restart: unless-stopped
+    deploy:
+      restart_policy:
+        condition: on-failure
+        delay: 60s 
+        max_attempts: 10    
 
   mqtt-explorer:
     image: ghcr.io/thomasnordquist/mqtt-explorer:latest
@@ -179,7 +209,12 @@ services:
       - dbapps
     ports: 
     - 3000:3000
-    restart: unless-stopped  
+    restart: unless-stopped
+    deploy:
+      restart_policy:
+        condition: on-failure
+        delay: 60s 
+        max_attempts: 10    
 
 networks:
   dbapps:
