@@ -181,6 +181,27 @@ services:
     - 3000:3000
     restart: unless-stopped
 
+  redisinsight:
+    image: redis/redisinsight:latest
+    container_name: $REDISINSIGHT_SERVICE_NAME
+    environment:
+      - PUID=$PUID
+      - PGID=$PGID
+      - TZ=$TZ
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
+      - type: volume
+        source: redisinsight
+        target: /data
+        volume:
+          nocopy: true  
+    networks:
+      - dbapps
+    ports: 
+    - 5540:5540
+    restart: unless-stopped
+
 networks:
   dbapps:
     name: dbapps
@@ -229,3 +250,9 @@ volumes:
       type: "nfs4"
       o: "addr=$NAS_ADDR,$NAS_MOUNT_PARAMS"
       device: "$NAS_PATH/mqtt-explorer/"
+
+  redisinsight:
+    driver_opts:
+      type: "nfs4"
+      o: "addr=$NAS_ADDR,$NAS_MOUNT_PARAMS"
+      device: "$NAS_PATH/redisinsight/"
