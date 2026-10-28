@@ -54,7 +54,7 @@ services:
     restart:  unless-stopped
 
   litellm:
-    image: docker.litellm.ai/berriai/litellm:${LITELLM_VERSION}
+    image: docker.litellm.ai/berriai/litellm:latest
     container_name: $LITELLM_SERVICE_NAME
     environment:
       - TZ=$TZ
