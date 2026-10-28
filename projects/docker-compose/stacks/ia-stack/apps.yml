@@ -15,7 +15,7 @@ services:
       - PAPERCLIP_API_URL=$PAPERCLIP_LOCAL_URL
       - PAPERCLIP_PUBLIC_URL=$PAPERCLIP_PUBLIC_URL
       - PAPERCLIP_AUTH_PUBLIC_BASE_URL=$PAPERCLIP_PUBLIC_URL
-      - DATABASE_URL=$DATABASE_URL
+      - DATABASE_URL=$PAPERCLIP_DATABASE_URL
     volumes:
       - /etc/localtime:/etc/localtime:ro
       - type: volume
@@ -52,6 +52,35 @@ services:
     extra_hosts:
       - "host.docker.internal:host-gateway"
     restart:  unless-stopped
+
+  litellm:
+    image: docker.litellm.ai/berriai/litellm:${LITELLM_VERSION}
+    container_name: $LITELLM_SERVICE_NAME
+    environment:
+      - TZ=$TZ
+      - DATABASE_URL=$LITELLM_DATABASE_URL
+      - LITELLM_MASTER_KEY=$LITELLM_MASTER_KEY
+      - LITELLM_SALT_KEY=$LITELLM_SALT_KEY
+      - STORE_MODEL_IN_DB=$LITELLM_STORE_MODEL_IN_DB
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /mnt/docker/ymls/litellm.yaml:/app/config.yaml:ro
+    networks:
+      - ia_apps
+    ports:
+      - "4000:4000"
+    command:
+      - "--config=/app/config.yaml"
+      - "--port=4000"
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - python3 -c "import urllib.request; urllib.request.urlopen('http://localhost:4000/health/liveliness')"
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    restart: unless-stopped
 
 networks:
   ia_apps:
